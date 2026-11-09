@@ -20,7 +20,10 @@ export default defineConfigWithVueTs(
   {
     name: 'app/clean-code',
     plugins: { app: { rules: { 'keine-kommentare': keineKommentare } } },
-    rules: { 'app/keine-kommentare': 'error' },
+    rules: {
+      'app/keine-kommentare': 'error',
+      'no-irregular-whitespace': ['error', { skipStrings: false, skipTemplates: false }],
+    },
   },
 
   {

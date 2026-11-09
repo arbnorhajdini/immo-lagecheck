@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { formatiereFlaeche, formatiereLaenge } from '@/lib/format'
 
-const TRENNER = ' '
+const TRENNER = '\u00a0'
 
 describe('formatiereFlaeche', () => {
   it('zeigt kleine Flächen in ganzen Quadratmetern', () => {

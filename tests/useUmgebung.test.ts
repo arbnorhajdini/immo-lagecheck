@@ -43,7 +43,9 @@ describe('useUmgebung', () => {
     )
     expect(umgebung.status.value).toBe('fertig')
     expect(supermarkt?.naechsterOrt?.ort.name).toBe('Markt am Eck')
-    expect(umgebung.statusText.value).toBe('1 von 8 Kategorien im Umkreis von 1,5 km gefunden.')
+    expect(umgebung.statusText.value).toBe(
+      '1 von 8 Kategorien im Umkreis von 1,5\u00a0km gefunden.',
+    )
   })
 
   it('zeigt eine verständliche Meldung, wenn der Dienst überlastet ist', async () => {

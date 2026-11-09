@@ -4,7 +4,7 @@ import { ermittleNaechsteOrte } from '@/lib/umgebung'
 import type { AdressTreffer, UmgebungsAuswertung } from '@/types'
 import { ortAn, quadratAmAequator, strasseEntlang } from './testdaten'
 
-const TRENNER = ' '
+const TRENNER = '\u00a0'
 
 const ellenriederstrasse: AdressTreffer = {
   id: 1,

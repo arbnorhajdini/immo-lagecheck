@@ -1,6 +1,6 @@
 const QM_PRO_HEKTAR = 10_000
 const METER_PRO_KILOMETER = 1000
-const ZAHL_UND_EINHEIT_TRENNER = ' '
+const ZAHL_UND_EINHEIT_TRENNER = '\u00a0'
 
 const ganzeZahl = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 })
 const zahlMitEinerNachkommastelle = new Intl.NumberFormat('de-DE', {
