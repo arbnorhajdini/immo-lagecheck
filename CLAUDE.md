@@ -47,6 +47,14 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
 - Nominatim: höchstens 1 Anfrage pro Sekunde, nur auf Knopfdruck/Enter suchen (kein Live-Suchen
   bei jedem Tastendruck), `accept-language=de`, Ergebnisse auf Deutschland begrenzen (`countrycodes=de`).
 - Overpass: **eine** gebündelte Abfrage pro „Umgebung prüfen“, Timeout setzen, Fehler freundlich anzeigen.
+  Die öffentlichen Overpass-Server sind oft überlastet (sofort 502 oder Antwort erst nach ~50 s).
+  Deshalb: Gesamtzeitlimit 60 s; nur bei Überlast (429/502/503/504, Laufzeitfehler, Netzwerkfehler)
+  bis zu 3 Versuche mit Pause (0 / 2 / 5 s), abwechselnd `overpass-api.de` und
+  `overpass.private.coffee` (siehe `src/lib/overpass.ts`).
+- Fremde Texte (Adressen, OSM-Namen) nie als HTML in Leaflet-Tooltips/Popups einsetzen,
+  sondern über `alsSichererText()` (`src/lib/kartenText.ts`) – Schutz vor XSS.
+- Eigene Kartenobjekte (Adress-Marker, Umgebung) mit `pmIgnore: true` anlegen, damit Geoman sie
+  nicht bearbeiten, verschieben oder löschen lässt.
 
 ## MVP (in dieser Reihenfolge)
 
@@ -144,7 +152,7 @@ src/
     AdressSuche.vue
     KarteGrundstueck.vue
     GrundstueckAngaben.vue // Anleitung, Fläche, Umfang, „Grundstück entfernen“
-    UmgebungListe.vue
+    UmgebungListe.vue      // Button „Umgebung prüfen“, Ergebnis je Kategorie
     LageSteckbrief.vue
   composables/
     useTheme.ts            // Hell / Dunkel / System
@@ -156,15 +164,24 @@ src/
     geometrie.ts           // reine Turf-Funktionen (testbar)
     grundstueckZeichnen.ts // Geoman: Werkzeugleiste, nur ein Grundstück, keine Selbstüberschneidung
     format.ts              // m², ha, m/km, deutsche Zahlenformate
-    overpass.ts            // Query bauen, Antwort parsen
+    overpass.ts            // Query bauen, Antwort parsen, Ausweichserver
+    umgebungKategorien.ts  // die 8 Kategorien – Overpass-Filter und Zuordnung aus einer Quelle
+    umgebung.ts            // nächstgelegener Ort je Kategorie
+    umgebungAufKarte.ts    // Marker, Hauptstraße, 1,5-km-Umkreis
+    kartenText.ts          // alsSichererText() für Tooltips
+    typpruefung.ts         // istObjekt, alsZahl für fremde JSON-Antworten
   types.ts
 tests/
   nominatim.test.ts
   useAdressSuche.test.ts
   useTheme.test.ts
   useGrundstueck.test.ts
+  useUmgebung.test.ts
+  overpass.test.ts
+  umgebung.test.ts
   geometrie.test.ts
   format.test.ts
+  testdaten.ts             // gemeinsame Testdaten (Quadrat am Äquator, Orte, Straßen)
 scripts/
   check-colors.mjs         // für npm run lint:colors
 eslint-regeln/

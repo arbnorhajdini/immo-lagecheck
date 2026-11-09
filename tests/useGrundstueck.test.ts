@@ -1,23 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { useGrundstueck } from '@/composables/useGrundstueck'
-import type { GrundstueckPolygon } from '@/lib/geometrie'
-
-const quadratAmAequator: GrundstueckPolygon = {
-  type: 'Feature',
-  properties: {},
-  geometry: {
-    type: 'Polygon',
-    coordinates: [
-      [
-        [0, 0],
-        [0.001, 0],
-        [0.001, 0.001],
-        [0, 0.001],
-        [0, 0],
-      ],
-    ],
-  },
-}
+import { FLAECHE_QUADRAT_QM, quadratAmAequator, UMFANG_QUADRAT_M } from './testdaten'
 
 describe('useGrundstueck', () => {
   it('hat ohne Grundstück keine Maße', () => {
@@ -31,8 +14,8 @@ describe('useGrundstueck', () => {
 
     grundstueck.value = quadratAmAequator
 
-    expect(masse.value?.flaecheQm).toBeCloseTo(12_364.3, 0)
-    expect(masse.value?.umfangM).toBeCloseTo(444.78, 1)
+    expect(masse.value?.flaecheQm).toBeCloseTo(FLAECHE_QUADRAT_QM, 0)
+    expect(masse.value?.umfangM).toBeCloseTo(UMFANG_QUADRAT_M, 1)
   })
 
   it('verwirft die Maße, wenn das Grundstück entfernt wird', () => {

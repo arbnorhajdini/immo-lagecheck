@@ -1,3 +1,4 @@
+import { alsZahl, istObjekt } from '@/lib/typpruefung'
 import type { AdressTreffer, Begrenzung } from '@/types'
 
 export const NOMINATIM_SUCH_URL = 'https://nominatim.openstreetmap.org/search'
@@ -17,15 +18,6 @@ export function baueSuchUrl(suchbegriff: string): string {
     'accept-language': 'de',
   })
   return `${NOMINATIM_SUCH_URL}?${parameter.toString()}`
-}
-
-function istObjekt(wert: unknown): wert is Record<string, unknown> {
-  return typeof wert === 'object' && wert !== null
-}
-
-function alsZahl(wert: unknown): number | null {
-  const zahl = typeof wert === 'number' ? wert : Number.parseFloat(String(wert))
-  return Number.isFinite(zahl) ? zahl : null
 }
 
 function parseBegrenzung(nominatimBoundingbox: unknown): Begrenzung | null {

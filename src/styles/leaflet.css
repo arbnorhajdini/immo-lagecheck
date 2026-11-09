@@ -104,3 +104,29 @@
   border-color: var(--color-plot-stroke);
   background-color: var(--color-surface);
 }
+
+.umgebung-marker {
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-primary);
+  border-radius: 9999px;
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.umgebung-strasse {
+  stroke: var(--color-warning);
+  stroke-width: 6;
+  stroke-opacity: 0.85;
+  fill: none;
+}
+
+.umgebung-umkreis {
+  stroke: var(--color-primary);
+  stroke-width: 1.5;
+  stroke-dasharray: 8 6;
+  fill: var(--color-primary);
+  fill-opacity: 0.04;
+}

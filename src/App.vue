@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import AdressSuche from '@/components/AdressSuche.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import GrundstueckAngaben from '@/components/GrundstueckAngaben.vue'
 import KarteGrundstueck from '@/components/KarteGrundstueck.vue'
+import UmgebungListe from '@/components/UmgebungListe.vue'
 import { useGrundstueck } from '@/composables/useGrundstueck'
+import { useUmgebung } from '@/composables/useUmgebung'
 import type { AdressTreffer } from '@/types'
 
 const adresse = ref<AdressTreffer | null>(null)
 const { grundstueck, masse, entferneGrundstueck } = useGrundstueck()
+const { auswertung, status, statusText, kannPruefen, pruefen } = useUmgebung(grundstueck)
+const hatGrundstueck = computed(() => grundstueck.value !== null)
 </script>
 
 <template>
@@ -21,9 +25,21 @@ const { grundstueck, masse, entferneGrundstueck } = useGrundstueck()
       <div class="flex flex-col gap-4">
         <AdressSuche v-model:adresse="adresse" />
         <GrundstueckAngaben :masse="masse" @entfernen="entferneGrundstueck" />
+        <UmgebungListe
+          :auswertung="auswertung"
+          :status="status"
+          :status-text="statusText"
+          :kann-pruefen="kannPruefen"
+          :hat-grundstueck="hatGrundstueck"
+          @pruefen="pruefen"
+        />
       </div>
 
-      <KarteGrundstueck v-model:grundstueck="grundstueck" :adresse="adresse" />
+      <KarteGrundstueck
+        v-model:grundstueck="grundstueck"
+        :adresse="adresse"
+        :umgebung="auswertung"
+      />
     </main>
   </div>
 </template>

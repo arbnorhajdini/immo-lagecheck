@@ -3,9 +3,14 @@ import L from 'leaflet'
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
 import type { GrundstueckPolygon } from '@/lib/geometrie'
 import { aktiviereGrundstueckZeichnen, type GrundstueckZeichnen } from '@/lib/grundstueckZeichnen'
-import type { AdressTreffer } from '@/types'
+import { alsSichererText } from '@/lib/kartenText'
+import { erstelleUmgebungAufKarte, type UmgebungAufKarte } from '@/lib/umgebungAufKarte'
+import type { AdressTreffer, UmgebungsAuswertung } from '@/types'
 
-const props = defineProps<{ adresse: AdressTreffer | null }>()
+const props = defineProps<{
+  adresse: AdressTreffer | null
+  umgebung: UmgebungsAuswertung | null
+}>()
 const grundstueck = defineModel<GrundstueckPolygon | null>('grundstueck', { default: null })
 
 const DEUTSCHLAND_MITTE: L.LatLngTuple = [51.1657, 10.4515]
@@ -33,6 +38,7 @@ const kartenElement = useTemplateRef<HTMLDivElement>('karte')
 let karte: L.Map | null = null
 let adressMarker: L.Marker | null = null
 let grundstueckZeichnen: GrundstueckZeichnen | null = null
+let umgebungAufKarte: UmgebungAufKarte | null = null
 
 function bewegungIstReduziert(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -58,11 +64,12 @@ function entferneAdressMarker(): void {
 
 function setzeAdressMarker(aktiveKarte: L.Map, adresse: AdressTreffer): void {
   adressMarker = L.marker([adresse.lat, adresse.lon], {
+    pmIgnore: true,
     icon: ADRESS_MARKER_ICON,
     title: adresse.kurzName,
     alt: adresse.kurzName,
   })
-    .bindTooltip(adresse.kurzName, { direction: 'top' })
+    .bindTooltip(alsSichererText(adresse.kurzName), { direction: 'top' })
     .addTo(aktiveKarte)
 }
 
@@ -99,17 +106,24 @@ onMounted(() => {
   grundstueckZeichnen = aktiviereGrundstueckZeichnen(karte, (gezeichnet) => {
     grundstueck.value = gezeichnet
   })
+  umgebungAufKarte = erstelleUmgebungAufKarte(karte)
   zeigeAdresse(props.adresse)
+  umgebungAufKarte.zeige(props.umgebung)
 })
 
 watch(() => props.adresse, zeigeAdresse)
 watch(grundstueck, entferneGezeichnetesGrundstueck)
+watch(
+  () => props.umgebung,
+  (auswertung) => umgebungAufKarte?.zeige(auswertung),
+)
 
 onBeforeUnmount(() => {
   entferneAdressMarker()
   karte?.remove()
   karte = null
   grundstueckZeichnen = null
+  umgebungAufKarte = null
 })
 </script>
 
