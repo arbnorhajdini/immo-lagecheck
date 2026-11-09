@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { useExposeExport } from '@/composables/useExposeExport'
 import type { ExposeAuftrag } from '@/lib/expose'
-import { quadratAmAequator } from './testdaten'
+import { HAUS, quadratAlsBezug } from './testdaten'
 
 const auftrag: ExposeAuftrag = {
+  objektart: HAUS,
   adresse: null,
-  grundstueck: quadratAmAequator,
+  bezug: quadratAlsBezug,
   masse: { flaecheQm: 12_364, umfangM: 445 },
   auswertung: null,
 }

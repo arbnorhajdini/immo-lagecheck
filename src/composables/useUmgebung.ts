@@ -1,6 +1,6 @@
 import { computed, ref, shallowRef, watch, type Ref } from 'vue'
 import { formatiereDatum, formatiereLaenge } from '@/lib/format'
-import { berechneMittelpunkt, type GrundstueckPolygon } from '@/lib/geometrie'
+import { type Bezugsobjekt, mittelpunktVon } from '@/lib/geometrie'
 import { istZeitueberschreitung, OverpassFehler } from '@/lib/overpass'
 import { ermittleNaechsteOrte } from '@/lib/umgebung'
 import { UMKREIS_M } from '@/lib/umgebungKategorien'
@@ -59,7 +59,7 @@ export function statusTextFuer(
 }
 
 export function useUmgebung(
-  grundstueck: Readonly<Ref<GrundstueckPolygon | null>>,
+  bezug: Readonly<Ref<Bezugsobjekt | null>>,
   ladeBeimDienst = ladeUmgebungMitZwischenspeicher,
 ) {
   const status = ref<UmgebungsStatus>('bereit')
@@ -68,7 +68,7 @@ export function useUmgebung(
   let laufendeAnfrage: AbortController | null = null
 
   const laedt = computed(() => status.value === 'laedt')
-  const kannPruefen = computed(() => grundstueck.value !== null && !laedt.value)
+  const kannPruefen = computed(() => bezug.value !== null && !laedt.value)
   const statusText = computed(() =>
     statusTextFuer(status.value, auswertung.value, fehlermeldung.value),
   )
@@ -92,11 +92,11 @@ export function useUmgebung(
   }
 
   async function pruefen(): Promise<void> {
-    const gepruefteFlaeche = grundstueck.value
-    if (!gepruefteFlaeche) return
+    const gepruefterBezug = bezug.value
+    if (!gepruefterBezug) return
 
     const signal = ersetzeLaufendeAnfrage()
-    const mittelpunkt = berechneMittelpunkt(gepruefteFlaeche)
+    const mittelpunkt = mittelpunktVon(gepruefterBezug)
     auswertung.value = null
     status.value = 'laedt'
 
@@ -106,7 +106,7 @@ export function useUmgebung(
       auswertung.value = {
         mittelpunkt,
         umkreisM: UMKREIS_M,
-        ergebnisse: ermittleNaechsteOrte(gepruefteFlaeche, orte),
+        ergebnisse: ermittleNaechsteOrte(gepruefterBezug, orte),
         stand,
         ausZwischenspeicher,
       }
@@ -116,7 +116,7 @@ export function useUmgebung(
     }
   }
 
-  watch(grundstueck, setzeZurueck)
+  watch(bezug, setzeZurueck)
 
   return { status, auswertung, laedt, kannPruefen, statusText, pruefen }
 }

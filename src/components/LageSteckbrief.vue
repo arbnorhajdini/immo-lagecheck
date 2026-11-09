@@ -2,15 +2,18 @@
 import { computed } from 'vue'
 import { useExposeExport } from '@/composables/useExposeExport'
 import { useZwischenablage } from '@/composables/useZwischenablage'
-import type { GrundstueckMasse, GrundstueckPolygon } from '@/lib/geometrie'
+import type { Bezugsobjekt, GrundstueckMasse } from '@/lib/geometrie'
+import { type Objektart, steckbriefVoraussetzungText } from '@/lib/objektart'
 import { erstelleSteckbrief } from '@/lib/steckbrief'
 import type { AdressTreffer, UmgebungsAuswertung } from '@/types'
 
 const props = defineProps<{
+  objektart: Objektart
   adresse: AdressTreffer | null
-  grundstueck: GrundstueckPolygon | null
+  bezug: Bezugsobjekt | null
   masse: GrundstueckMasse | null
   auswertung: UmgebungsAuswertung | null
+  nummer: number | null
 }>()
 
 const { status: kopierStatus, meldung: kopierMeldung, kopiere } = useZwischenablage()
@@ -22,8 +25,9 @@ const {
 } = useExposeExport()
 
 const steckbrief = computed(() =>
-  props.masse
+  props.bezug
     ? erstelleSteckbrief({
+        objektart: props.objektart,
         adresse: props.adresse,
         masse: props.masse,
         auswertung: props.auswertung,
@@ -33,10 +37,11 @@ const steckbrief = computed(() =>
 const zeilenAnzahl = computed(() => steckbrief.value.split('\n').length)
 
 function speichereExpose(): void {
-  if (!props.grundstueck || !props.masse) return
+  if (!props.bezug) return
   speichereAlsPdf({
+    objektart: props.objektart,
     adresse: props.adresse,
-    grundstueck: props.grundstueck,
+    bezug: props.bezug,
     masse: props.masse,
     auswertung: props.auswertung,
   })
@@ -48,10 +53,12 @@ function speichereExpose(): void {
     aria-labelledby="steckbrief-titel"
     class="rounded-lg border border-border bg-surface p-4 shadow-sm"
   >
-    <h2 id="steckbrief-titel" class="text-base font-semibold text-fg">4. Lage-Steckbrief</h2>
+    <h2 id="steckbrief-titel" class="text-base font-semibold text-fg">
+      {{ nummer }}. Lage-Steckbrief
+    </h2>
 
-    <p v-if="!masse" class="mt-2 text-sm text-muted">
-      Erscheint, sobald ein Grundstück eingezeichnet ist.
+    <p v-if="!bezug" class="mt-2 text-sm text-muted">
+      {{ steckbriefVoraussetzungText(objektart) }}
     </p>
 
     <template v-else>

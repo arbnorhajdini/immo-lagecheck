@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { ermittleNaechsteOrte, nummeriereGefundeneOrte } from '@/lib/umgebung'
 import { UMGEBUNGS_KATEGORIEN } from '@/lib/umgebungKategorien'
-import { ortAn, quadratAmAequator, strasseEntlang } from './testdaten'
+import { ortAn, quadratAlsBezug, strasseEntlang } from './testdaten'
 
 describe('ermittleNaechsteOrte', () => {
   it('liefert für jede Kategorie genau ein Ergebnis in fester Reihenfolge', () => {
-    const ergebnisse = ermittleNaechsteOrte(quadratAmAequator, [])
+    const ergebnisse = ermittleNaechsteOrte(quadratAlsBezug, [])
 
     expect(ergebnisse.map(({ kategorie }) => kategorie)).toEqual(
       UMGEBUNGS_KATEGORIEN.map(({ schluessel }) => schluessel),
@@ -19,7 +19,7 @@ describe('ermittleNaechsteOrte', () => {
       ortAn('schule', 'Grundschule', { lat: 0.003, lon: 0.0005 }),
     ]
 
-    const ergebnisse = ermittleNaechsteOrte(quadratAmAequator, orte)
+    const ergebnisse = ermittleNaechsteOrte(quadratAlsBezug, orte)
     const supermarkt = ergebnisse.find(({ kategorie }) => kategorie === 'supermarkt')
     const schule = ergebnisse.find(({ kategorie }) => kategorie === 'schule')
 
@@ -29,7 +29,7 @@ describe('ermittleNaechsteOrte', () => {
   })
 
   it('meldet Kategorien ohne Treffer mit null', () => {
-    const ergebnisse = ermittleNaechsteOrte(quadratAmAequator, [
+    const ergebnisse = ermittleNaechsteOrte(quadratAlsBezug, [
       ortAn('apotheke', 'Löwen-Apotheke', { lat: 0, lon: 0.002 }),
     ])
     const kita = ergebnisse.find(({ kategorie }) => kategorie === 'kita')
@@ -38,7 +38,7 @@ describe('ermittleNaechsteOrte', () => {
   })
 
   it('misst bei der Hauptstraße den Abstand zur Linie', () => {
-    const ergebnisse = ermittleNaechsteOrte(quadratAmAequator, [
+    const ergebnisse = ermittleNaechsteOrte(quadratAlsBezug, [
       strasseEntlang('B 188', [
         { lat: -0.001, lon: 0.003 },
         { lat: 0.002, lon: 0.003 },
@@ -53,7 +53,7 @@ describe('ermittleNaechsteOrte', () => {
 
 describe('nummeriereGefundeneOrte', () => {
   it('vergibt fortlaufende Nummern nur an Kategorien mit Treffer', () => {
-    const ergebnisse = ermittleNaechsteOrte(quadratAmAequator, [
+    const ergebnisse = ermittleNaechsteOrte(quadratAlsBezug, [
       ortAn('supermarkt', 'Edeka', { lat: 0.0005, lon: 0.002 }),
       ortAn('apotheke', 'Löwen-Apotheke', { lat: 0.0005, lon: 0.003 }),
     ])

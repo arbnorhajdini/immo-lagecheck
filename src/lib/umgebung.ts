@@ -1,13 +1,10 @@
-import { abstandZumGrundstueckM, type GrundstueckPolygon } from '@/lib/geometrie'
+import { abstandZumBezugM, type Bezugsobjekt } from '@/lib/geometrie'
 import { UMGEBUNGS_KATEGORIEN } from '@/lib/umgebungKategorien'
 import type { KategorieErgebnis, NaechsterOrt, UmgebungsOrt } from '@/types'
 
-function naechsterOrt(
-  grundstueck: GrundstueckPolygon,
-  kandidaten: UmgebungsOrt[],
-): NaechsterOrt | null {
+function naechsterOrt(bezug: Bezugsobjekt, kandidaten: UmgebungsOrt[]): NaechsterOrt | null {
   return kandidaten
-    .map((ort) => ({ ort, abstandM: abstandZumGrundstueckM(grundstueck, ort.geometrie) }))
+    .map((ort) => ({ ort, abstandM: abstandZumBezugM(bezug, ort.geometrie) }))
     .reduce<NaechsterOrt | null>(
       (bisherNaechster, kandidat) =>
         !bisherNaechster || kandidat.abstandM < bisherNaechster.abstandM
@@ -18,7 +15,7 @@ function naechsterOrt(
 }
 
 export function ermittleNaechsteOrte(
-  grundstueck: GrundstueckPolygon,
+  bezug: Bezugsobjekt,
   orte: UmgebungsOrt[],
 ): KategorieErgebnis[] {
   return UMGEBUNGS_KATEGORIEN.map(({ schluessel, bezeichnung, symbol }) => ({
@@ -26,7 +23,7 @@ export function ermittleNaechsteOrte(
     bezeichnung,
     symbol,
     naechsterOrt: naechsterOrt(
-      grundstueck,
+      bezug,
       orte.filter((ort) => ort.kategorie === schluessel),
     ),
   }))

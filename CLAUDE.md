@@ -95,6 +95,14 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
 
 ## Erweiterungen (umgesetzt)
 
+6. **Objektart** (`src/lib/objektart.ts`, Auswahl oben links): Haus mit Grundstück, Wohnung,
+   Grundstück (unbebaut) – als Liste, neue Arten = ein Eintrag mehr.
+   - Mit Grundstück: Grundstück einzeichnen, Entfernungen ab Grundstücksgrenze.
+   - Wohnung: kein Zeichnen (Werkzeuge ausgeblendet, gezeichnetes Grundstück wird entfernt),
+     Entfernungen ab Adresspunkt; Steckbrief/PDF ohne Fläche/Umfang, eigener Hinweistext.
+   - Intern rechnet alles mit einem `Bezugsobjekt` (`geometrie.ts`): Grundstück-Polygon oder
+     Adresspunkt. Schrittnummern und Hinweistexte kommen aus `objektart.ts`.
+
 5. **PDF-Exposé** („Als PDF-Exposé speichern“ im Lage-Steckbrief)
    A4, echte PDF-Datei mit jsPDF (erst beim Klick per `import()` geladen), Text als Vektor.
    - Seite 1: Adresse, Detailkarte mit Grundstück, Kennzahlen (Fläche, Umfang, Infrastruktur),
@@ -175,6 +183,7 @@ src/
     leaflet.css            // Leaflet-Controls, Tooltip, Marker in Token-Farben
   components/
     AppHeader.vue          // Titel + Theme-Umschalter
+    ObjektartWahl.vue      // Haus / Wohnung / Grundstück
     AdressSuche.vue
     KarteGrundstueck.vue
     GrundstueckAngaben.vue // Anleitung, Fläche, Umfang, „Grundstück entfernen“
@@ -189,6 +198,7 @@ src/
     useExposeExport.ts     // Status des PDF-Exports
   lib/
     nominatim.ts           // Such-URL, Antwort parsen, 1 Anfrage/Sekunde
+    objektart.ts           // Objektarten, Schrittnummern, Bezugsobjekt je Objektart
     geometrie.ts           // reine Turf-Funktionen (testbar)
     grundstueckZeichnen.ts // Geoman: Werkzeugleiste, nur ein Grundstück, keine Selbstüberschneidung
     format.ts              // m², ha, m/km, deutsche Zahlenformate
@@ -213,6 +223,7 @@ src/
   types.ts
 tests/
   nominatim.test.ts
+  objektart.test.ts
   useAdressSuche.test.ts
   useTheme.test.ts
   useGrundstueck.test.ts

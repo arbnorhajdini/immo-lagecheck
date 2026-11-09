@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useAdressSuche } from '@/composables/useAdressSuche'
 import type { AdressTreffer } from '@/types'
 
+defineProps<{ nummer: number | null }>()
 const adresse = defineModel<AdressTreffer | null>('adresse', { default: null })
 
 const { suchbegriff, status, treffer, laedt, statusText, suchen } = useAdressSuche()
@@ -20,7 +21,7 @@ async function sucheUndWaehleBestenTreffer(): Promise<void> {
     aria-labelledby="adresse-titel"
     class="rounded-lg border border-border bg-surface p-4 shadow-sm"
   >
-    <h2 id="adresse-titel" class="text-base font-semibold text-fg">1. Adresse suchen</h2>
+    <h2 id="adresse-titel" class="text-base font-semibold text-fg">{{ nummer }}. Adresse suchen</h2>
 
     <form role="search" class="mt-3" novalidate @submit.prevent="sucheUndWaehleBestenTreffer">
       <label for="adresse-eingabe" class="block text-sm font-medium text-fg">

@@ -10,6 +10,7 @@ import type { AdressTreffer, UmgebungsAuswertung } from '@/types'
 const props = defineProps<{
   adresse: AdressTreffer | null
   umgebung: UmgebungsAuswertung | null
+  zeichnenAktiv: boolean
 }>()
 const grundstueck = defineModel<GrundstueckPolygon | null>('grundstueck', { default: null })
 
@@ -106,6 +107,7 @@ onMounted(() => {
   grundstueckZeichnen = aktiviereGrundstueckZeichnen(karte, (gezeichnet) => {
     grundstueck.value = gezeichnet
   })
+  grundstueckZeichnen.zeigeWerkzeuge(props.zeichnenAktiv)
   umgebungAufKarte = erstelleUmgebungAufKarte(karte)
   zeigeAdresse(props.adresse)
   umgebungAufKarte.zeige(props.umgebung)
@@ -113,6 +115,10 @@ onMounted(() => {
 
 watch(() => props.adresse, zeigeAdresse)
 watch(grundstueck, entferneGezeichnetesGrundstueck)
+watch(
+  () => props.zeichnenAktiv,
+  (aktiv) => grundstueckZeichnen?.zeigeWerkzeuge(aktiv),
+)
 watch(
   () => props.umgebung,
   (auswertung) => umgebungAufKarte?.zeige(auswertung),

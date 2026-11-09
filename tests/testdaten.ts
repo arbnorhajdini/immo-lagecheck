@@ -1,4 +1,5 @@
-import type { GrundstueckPolygon } from '@/lib/geometrie'
+import type { Bezugsobjekt, GrundstueckPolygon } from '@/lib/geometrie'
+import { OBJEKTARTEN, type Objektart, type ObjektartSchluessel } from '@/lib/objektart'
 import type { KategorieSchluessel, Koordinate, UmgebungsOrt } from '@/types'
 
 export const KANTENLAENGE_GRAD = 0.001
@@ -39,3 +40,18 @@ export function strasseEntlang(name: string, verlauf: Koordinate[]): UmgebungsOr
     geometrie: { art: 'linie', verlauf },
   }
 }
+
+export const quadratAlsBezug: Bezugsobjekt = { art: 'grundstueck', grundstueck: quadratAmAequator }
+
+export const adresseInQuadratmitte: Bezugsobjekt = {
+  art: 'adresse',
+  position: { lat: KANTENLAENGE_GRAD / 2, lon: KANTENLAENGE_GRAD / 2 },
+}
+
+function objektart(schluessel: ObjektartSchluessel): Objektart {
+  return OBJEKTARTEN.find((art) => art.schluessel === schluessel)!
+}
+
+export const HAUS = objektart('haus')
+export const WOHNUNG = objektart('wohnung')
+export const UNBEBAUTES_GRUNDSTUECK = objektart('grundstueck')

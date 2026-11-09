@@ -29,9 +29,26 @@ const MAKLERFREUNDLICHE_TEXTE: L.PM.Translations = {
 
 export interface GrundstueckZeichnen {
   entferneGrundstueck(): void
+  zeigeWerkzeuge(sichtbar: boolean): void
 }
 
-function richteWerkzeugleisteEin(karte: L.Map): void {
+const WERKZEUGLEISTE: L.PM.ToolbarOptions = {
+  position: 'topleft',
+  drawPolygon: true,
+  drawRectangle: true,
+  editMode: true,
+  dragMode: true,
+  removalMode: true,
+  drawMarker: false,
+  drawCircleMarker: false,
+  drawPolyline: false,
+  drawCircle: false,
+  drawText: false,
+  cutPolygon: false,
+  rotateMode: false,
+}
+
+function richteZeichnenEin(karte: L.Map): void {
   karte.pm.setLang('de', MAKLERFREUNDLICHE_TEXTE)
   karte.pm.setGlobalOptions({
     allowSelfIntersection: false,
@@ -39,21 +56,13 @@ function richteWerkzeugleisteEin(karte: L.Map): void {
     templineStyle: { className: ZEICHENLINIE_KLASSE },
     hintlineStyle: { className: ZEICHENLINIE_KLASSE },
   })
-  karte.pm.addControls({
-    position: 'topleft',
-    drawPolygon: true,
-    drawRectangle: true,
-    editMode: true,
-    dragMode: true,
-    removalMode: true,
-    drawMarker: false,
-    drawCircleMarker: false,
-    drawPolyline: false,
-    drawCircle: false,
-    drawText: false,
-    cutPolygon: false,
-    rotateMode: false,
-  })
+}
+
+function beendeAlleModi(karte: L.Map): void {
+  karte.pm.disableDraw()
+  karte.pm.disableGlobalEditMode()
+  karte.pm.disableGlobalDragMode()
+  karte.pm.disableGlobalRemovalMode()
 }
 
 export function aktiviereGrundstueckZeichnen(
@@ -85,9 +94,18 @@ export function aktiviereGrundstueckZeichnen(
     meldeAktuellesGrundstueck()
   }
 
-  richteWerkzeugleisteEin(karte)
+  function zeigeWerkzeuge(sichtbar: boolean): void {
+    if (sichtbar) {
+      karte.pm.addControls(WERKZEUGLEISTE)
+      return
+    }
+    beendeAlleModi(karte)
+    karte.pm.removeControls()
+  }
+
+  richteZeichnenEin(karte)
   karte.on('pm:create', ({ layer }) => ersetzeGrundstueck(layer))
   karte.on('pm:remove', ({ layer }) => vergissGeloeschteFlaeche(layer))
 
-  return { entferneGrundstueck }
+  return { entferneGrundstueck, zeigeWerkzeuge }
 }

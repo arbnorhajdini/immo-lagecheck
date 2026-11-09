@@ -5,7 +5,7 @@ import type { PdfFarben } from '@/lib/pdfFarben'
 import { alsPdfText } from '@/lib/pdfText'
 
 export interface ExposeKarten {
-  grundstueck: Kartenbild
+  objekt: Kartenbild
   umgebung: Kartenbild | null
 }
 
@@ -114,7 +114,7 @@ function zeichneKopf(
   pdf.rect(0, 0, SEITE_BREITE_MM, AKZENTLEISTE_MM, 'F')
 
   setzeSchrift(zeichner, SCHRIFTGROESSE.etikett, farben.primaer, 'bold')
-  pdf.text(etikett.toUpperCase(), RAND_MM, ETIKETT_Y_MM, {
+  pdf.text(alsPdfText(etikett.toUpperCase()), RAND_MM, ETIKETT_Y_MM, {
     baseline: 'top',
     charSpace: ETIKETT_ZEICHENABSTAND,
   })
@@ -320,20 +320,15 @@ function zeichneFusszeile(zeichner: Zeichner, quelle: string, seite: number, sei
   schreibe(zeichner, `Seite ${seite} von ${seiten}`, RECHTE_KANTE_MM, FUSSZEILE_TEXT_Y_MM, 'right')
 }
 
-function zeichneGrundstuecksseite(zeichner: Zeichner, inhalt: ExposeInhalt, karte: Kartenbild) {
+function zeichneObjektseite(zeichner: Zeichner, inhalt: ExposeInhalt, karte: Kartenbild) {
   const kopfEnde = zeichneKopf(
     zeichner,
-    'Lage-Steckbrief',
+    inhalt.etikett,
     inhalt.titel,
     inhalt.untertitel,
     inhalt.erstelltAm,
   )
-  const karteEnde = zeichneKarte(
-    zeichner,
-    karte,
-    kopfEnde,
-    'Eingezeichnete Grundstücksgrenze · Kartenbasis © OpenStreetMap-Mitwirkende',
-  )
+  const karteEnde = zeichneKarte(zeichner, karte, kopfEnde, inhalt.kartenunterschrift)
   const kennzahlenEnde = zeichneKennzahlen(zeichner, inhalt.kennzahlen, karteEnde)
   zeichneNaechsteZiele(zeichner, inhalt.naechsteZiele, kennzahlenEnde)
   zeichneHinweis(zeichner, inhalt.hinweis)
@@ -359,7 +354,7 @@ export async function baueExposePdf(
   const seiten = mitUmgebungsseite ? 2 : 1
 
   pdf.setProperties({ title: `Lage-Steckbrief ${inhalt.titel}`, subject: inhalt.untertitel })
-  zeichneGrundstuecksseite(zeichner, inhalt, karten.grundstueck)
+  zeichneObjektseite(zeichner, inhalt, karten.objekt)
   zeichneFusszeile(zeichner, inhalt.quellenangabe, 1, seiten)
 
   if (mitUmgebungsseite && karten.umgebung) {

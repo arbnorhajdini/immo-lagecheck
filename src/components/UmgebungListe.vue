@@ -9,7 +9,9 @@ const props = defineProps<{
   status: UmgebungsStatus
   statusText: string
   kannPruefen: boolean
-  hatGrundstueck: boolean
+  hatBezug: boolean
+  hinweis: string
+  nummer: number | null
 }>()
 const emit = defineEmits<{ pruefen: [] }>()
 
@@ -23,20 +25,22 @@ const umkreisText = computed(() => formatiereLaenge(props.auswertung?.umkreisM ?
     aria-labelledby="umgebung-titel"
     class="rounded-lg border border-border bg-surface p-4 shadow-sm"
   >
-    <h2 id="umgebung-titel" class="text-base font-semibold text-fg">3. Umgebung prüfen</h2>
+    <h2 id="umgebung-titel" class="text-base font-semibold text-fg">
+      {{ nummer }}. Umgebung prüfen
+    </h2>
 
     <button
       type="button"
       :disabled="!kannPruefen"
-      :aria-describedby="hatGrundstueck ? undefined : 'umgebung-hinweis'"
+      :aria-describedby="hatBezug ? undefined : 'umgebung-hinweis'"
       class="mt-3 w-full cursor-pointer rounded-md bg-primary px-4 py-2 font-medium text-primary-contrast transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
       @click="emit('pruefen')"
     >
       {{ laedt ? 'Umgebung wird geprüft …' : 'Umgebung prüfen' }}
     </button>
 
-    <p v-if="!hatGrundstueck" id="umgebung-hinweis" class="mt-2 text-sm text-muted">
-      Zuerst ein Grundstück einzeichnen.
+    <p v-if="!hatBezug" id="umgebung-hinweis" class="mt-2 text-sm text-muted">
+      {{ hinweis }}
     </p>
 
     <p

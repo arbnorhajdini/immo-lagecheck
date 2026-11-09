@@ -7,12 +7,14 @@ import {
   istHektarRelevant,
 } from '@/lib/format'
 import type { GrundstueckMasse } from '@/lib/geometrie'
+import { luftlinieAb, type Objektart } from '@/lib/objektart'
 import { nummeriereGefundeneOrte } from '@/lib/umgebung'
 import type { AdressTreffer, Koordinate, UmgebungsAuswertung } from '@/types'
 
 export interface ExposeDaten {
+  objektart: Objektart
   adresse: AdressTreffer | null
-  masse: GrundstueckMasse
+  masse: GrundstueckMasse | null
   mittelpunkt: Koordinate
   auswertung: UmgebungsAuswertung | null
   erstelltAm: number
@@ -39,6 +41,8 @@ export interface UmgebungsAbschnitt {
 }
 
 export interface ExposeInhalt {
+  etikett: string
+  kartenunterschrift: string
   titel: string
   untertitel: string
   erstelltAm: string
@@ -50,11 +54,14 @@ export interface ExposeInhalt {
   dateiname: string
 }
 
-const TITEL_OHNE_ADRESSE = 'Grundstück'
 const ANZAHL_NAECHSTE_ZIELE = 4
-const HINWEIS =
+const KARTENBASIS = 'Kartenbasis © OpenStreetMap-Mitwirkende'
+const HINWEIS_MIT_GRUNDSTUECK =
   'Alle Angaben ohne Gewähr. Fläche und Umfang wurden aus der eingezeichneten Grenze berechnet ' +
   'und ersetzen keine amtliche Vermessung. Entfernungen sind Luftlinie ab Grundstücksgrenze.'
+const HINWEIS_AB_ADRESSE =
+  'Alle Angaben ohne Gewähr. Entfernungen sind Luftlinie ab der Adresse des Gebäudes ' +
+  '(Lagepunkt aus OpenStreetMap), nicht ab der Wohnungstür.'
 const QUELLENANGABE = 'Karten und Umgebungsdaten: © OpenStreetMap-Mitwirkende (ODbL)'
 
 const UMLAUTE: Record<string, string> = {
@@ -83,9 +90,13 @@ function alsDateinamenteil(text: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-function titelUndUntertitel(adresse: AdressTreffer | null, mittelpunkt: Koordinate) {
+function titelUndUntertitel(
+  objektart: Objektart,
+  adresse: AdressTreffer | null,
+  mittelpunkt: Koordinate,
+) {
   if (!adresse) {
-    return { titel: TITEL_OHNE_ADRESSE, untertitel: formatiereKoordinaten(mittelpunkt) }
+    return { titel: objektart.bezeichnung, untertitel: formatiereKoordinaten(mittelpunkt) }
   }
   const [strasse = adresse.kurzName, ...ort] = adresse.kurzName.split(', ')
   return { titel: strasse, untertitel: ort.join(', ') }
@@ -116,7 +127,45 @@ function infrastrukturKennzahl(auswertung: UmgebungsAuswertung | null): Kennzahl
   }
 }
 
-function umgebungsAbschnitt(auswertung: UmgebungsAuswertung): UmgebungsAbschnitt {
+function objektartKennzahl(objektart: Objektart): Kennzahl {
+  return {
+    bezeichnung: 'Objektart',
+    wert: objektart.bezeichnung,
+    zusatz: `Entfernungen ab ${luftlinieAb(objektart)}`,
+  }
+}
+
+function naechstesZielKennzahl(auswertung: UmgebungsAuswertung | null): Kennzahl {
+  const [naechstes] = naechsteZiele(auswertung)
+  if (!naechstes) {
+    return { bezeichnung: 'Nächstes Ziel', wert: '–', zusatz: 'noch nicht geprüft' }
+  }
+  return { bezeichnung: 'Nächstes Ziel', wert: naechstes.wert, zusatz: naechstes.bezeichnung }
+}
+
+function kennzahlen(
+  objektart: Objektart,
+  masse: GrundstueckMasse | null,
+  auswertung: UmgebungsAuswertung | null,
+): Kennzahl[] {
+  if (masse) {
+    return [flaechenKennzahl(masse), umfangsKennzahl(masse), infrastrukturKennzahl(auswertung)]
+  }
+  return [
+    objektartKennzahl(objektart),
+    infrastrukturKennzahl(auswertung),
+    naechstesZielKennzahl(auswertung),
+  ]
+}
+
+function objektPunktText(objektart: Objektart): string {
+  return objektart.mitGrundstueck ? 'Grundstück' : 'Adresse'
+}
+
+function umgebungsAbschnitt(
+  objektart: Objektart,
+  auswertung: UmgebungsAuswertung,
+): UmgebungsAbschnitt {
   const umkreis = formatiereLaenge(auswertung.umkreisM)
   const nummerJeKategorie = new Map(
     nummeriereGefundeneOrte(auswertung.ergebnisse).map(({ ergebnis, nummer }) => [
@@ -127,9 +176,8 @@ function umgebungsAbschnitt(auswertung: UmgebungsAuswertung): UmgebungsAbschnitt
 
   return {
     ueberschrift: `Infrastruktur im Umkreis von ${umkreis}`,
-    unterzeile: `Luftlinie ab Grundstücksgrenze · Stand der Daten ${formatiereDatum(auswertung.stand)}`,
-    legende:
-      'Schwarzer Punkt: Grundstück · Nummern: nächster Ort je Kategorie · orange: Hauptstraße',
+    unterzeile: `Luftlinie ab ${luftlinieAb(objektart)} · Stand der Daten ${formatiereDatum(auswertung.stand)}`,
+    legende: `Schwarzer Punkt: ${objektPunktText(objektart)} · Nummern: nächster Ort je Kategorie · orange: Hauptstraße`,
     zeilen: auswertung.ergebnisse.map(({ kategorie, bezeichnung, naechsterOrt }) => ({
       nummer: nummerJeKategorie.get(kategorie) ?? null,
       kategorie: bezeichnung,
@@ -159,30 +207,27 @@ function dateiname(titel: string, untertitel: string, erstelltAm: number): strin
 }
 
 export function erstelleExposeInhalt({
+  objektart,
   adresse,
   masse,
   mittelpunkt,
   auswertung,
   erstelltAm,
 }: ExposeDaten): ExposeInhalt {
-  const { titel, untertitel } = titelUndUntertitel(adresse, mittelpunkt)
+  const { titel, untertitel } = titelUndUntertitel(objektart, adresse, mittelpunkt)
   return {
+    etikett: `Lage-Steckbrief · ${objektart.bezeichnung}`,
+    kartenunterschrift: objektart.mitGrundstueck
+      ? `Eingezeichnete Grundstücksgrenze · ${KARTENBASIS}`
+      : `Lage der Adresse · ${KARTENBASIS}`,
     titel,
     untertitel,
     erstelltAm: `Erstellt am ${formatiereDatum(erstelltAm)}`,
-    kennzahlen: [
-      flaechenKennzahl(masse),
-      umfangsKennzahl(masse),
-      infrastrukturKennzahl(auswertung),
-    ],
+    kennzahlen: kennzahlen(objektart, masse, auswertung),
     naechsteZiele: naechsteZiele(auswertung),
-    umgebung: auswertung ? umgebungsAbschnitt(auswertung) : null,
-    hinweis: HINWEIS,
+    umgebung: auswertung ? umgebungsAbschnitt(objektart, auswertung) : null,
+    hinweis: objektart.mitGrundstueck ? HINWEIS_MIT_GRUNDSTUECK : HINWEIS_AB_ADRESSE,
     quellenangabe: QUELLENANGABE,
-    dateiname: dateiname(
-      adresse ? titel : TITEL_OHNE_ADRESSE,
-      adresse ? untertitel : '',
-      erstelltAm,
-    ),
+    dateiname: dateiname(titel, adresse ? untertitel : '', erstelltAm),
   }
 }

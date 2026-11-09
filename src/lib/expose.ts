@@ -1,46 +1,42 @@
 import { erstelleExposeInhalt } from '@/lib/exposeInhalt'
 import { baueExposePdf } from '@/lib/exposePdf'
-import {
-  berechneMittelpunkt,
-  type GrundstueckMasse,
-  type GrundstueckPolygon,
-} from '@/lib/geometrie'
-import { zeichneGrundstueckskarte, zeichneUmgebungskarte } from '@/lib/kartenbild'
+import { type Bezugsobjekt, type GrundstueckMasse, mittelpunktVon } from '@/lib/geometrie'
+import { zeichneObjektkarte, zeichneUmgebungskarte } from '@/lib/kartenbild'
+import type { Objektart } from '@/lib/objektart'
 import { ladePdfFarben } from '@/lib/pdfFarben'
 import type { AdressTreffer, UmgebungsAuswertung } from '@/types'
 
 export interface ExposeAuftrag {
+  objektart: Objektart
   adresse: AdressTreffer | null
-  grundstueck: GrundstueckPolygon
-  masse: GrundstueckMasse
+  bezug: Bezugsobjekt
+  masse: GrundstueckMasse | null
   auswertung: UmgebungsAuswertung | null
 }
 
 export async function speichereExposeAlsPdf({
+  objektart,
   adresse,
-  grundstueck,
+  bezug,
   masse,
   auswertung,
 }: ExposeAuftrag): Promise<string> {
   const farben = ladePdfFarben()
   const inhalt = erstelleExposeInhalt({
+    objektart,
     adresse,
     masse,
     auswertung,
-    mittelpunkt: berechneMittelpunkt(grundstueck),
+    mittelpunkt: mittelpunktVon(bezug),
     erstelltAm: Date.now(),
   })
 
-  const [grundstueckskarte, umgebungskarte] = await Promise.all([
-    zeichneGrundstueckskarte(grundstueck, farben),
-    auswertung ? zeichneUmgebungskarte(grundstueck, auswertung, farben) : null,
+  const [objektkarte, umgebungskarte] = await Promise.all([
+    zeichneObjektkarte(bezug, farben),
+    auswertung ? zeichneUmgebungskarte(bezug, auswertung, farben) : null,
   ])
 
-  const pdf = await baueExposePdf(
-    inhalt,
-    { grundstueck: grundstueckskarte, umgebung: umgebungskarte },
-    farben,
-  )
+  const pdf = await baueExposePdf(inhalt, { objekt: objektkarte, umgebung: umgebungskarte }, farben)
   pdf.save(inhalt.dateiname)
   return inhalt.dateiname
 }

@@ -1,4 +1,4 @@
-import { alsKoordinate, type GrundstueckPolygon } from '@/lib/geometrie'
+import { alsKoordinate, type Bezugsobjekt, type GrundstueckPolygon } from '@/lib/geometrie'
 import {
   alsBildpunkt,
   begrenzungUmKreis,
@@ -28,6 +28,7 @@ export const BILD_HOEHE_PX = 880
 const MAX_KACHEL_ZOOM = 19
 const JPEG_QUALITAET = 0.9
 const RAND_UM_GRUNDSTUECK_ANTEIL = 0.8
+const AUSSCHNITT_UM_ADRESSE_M = 80
 const RAND_UM_ORTEN_ANTEIL = 0.15
 const MINDESTRADIUS_UEBERSICHT_M = 500
 
@@ -40,8 +41,8 @@ const MARKER_LUECKE_PX = 8
 const MARKER_MINDESTABSTAND_PX = 2 * MARKER_RADIUS_PX + MARKER_LUECKE_PX
 const FUEHRUNGSLINIE_PX = 2.5
 const ORTSPUNKT_RADIUS_PX = 5
-const GRUNDSTUECKSPUNKT_RADIUS_PX = 13
-const GRUNDSTUECKSPUNKT_KERN_PX = 5
+const OBJEKTPUNKT_RADIUS_PX = 13
+const OBJEKTPUNKT_KERN_PX = 5
 const MARKER_SCHRIFT = 'bold 24px Helvetica, Arial, sans-serif'
 const ATTRIBUTION_SCHRIFT = '18px Helvetica, Arial, sans-serif'
 const ATTRIBUTION_TEXT = '© OpenStreetMap-Mitwirkende'
@@ -159,16 +160,16 @@ function zeichneFuehrungslinie({ kontext, farben }: Zeichenflaeche, von: Punkt, 
   kontext.fill()
 }
 
-function zeichneGrundstueckspunkt({ kontext, farben }: Zeichenflaeche, punkt: Punkt): void {
+function zeichneObjektpunkt({ kontext, farben }: Zeichenflaeche, punkt: Punkt): void {
   kontext.beginPath()
-  kontext.arc(punkt.x, punkt.y, GRUNDSTUECKSPUNKT_RADIUS_PX, 0, 2 * Math.PI)
+  kontext.arc(punkt.x, punkt.y, OBJEKTPUNKT_RADIUS_PX, 0, 2 * Math.PI)
   kontext.fillStyle = farben.text
   kontext.fill()
   kontext.lineWidth = MARKER_RAND_PX
   kontext.strokeStyle = farben.primaerKontrast
   kontext.stroke()
   kontext.beginPath()
-  kontext.arc(punkt.x, punkt.y, GRUNDSTUECKSPUNKT_KERN_PX, 0, 2 * Math.PI)
+  kontext.arc(punkt.x, punkt.y, OBJEKTPUNKT_KERN_PX, 0, 2 * Math.PI)
   kontext.fillStyle = farben.primaerKontrast
   kontext.fill()
 }
@@ -211,19 +212,33 @@ function alsKartenbild({ leinwand, ausschnitt }: Zeichenflaeche): Kartenbild {
   }
 }
 
-export async function zeichneGrundstueckskarte(
-  grundstueck: GrundstueckPolygon,
-  farben: PdfFarben,
-): Promise<Kartenbild> {
-  const begrenzung = erweitereBegrenzung(
-    begrenzungVon(aussengrenze(grundstueck)),
+function detailBegrenzung(bezug: Bezugsobjekt) {
+  if (bezug.art === 'adresse') return begrenzungUmKreis(bezug.position, AUSSCHNITT_UM_ADRESSE_M)
+  return erweitereBegrenzung(
+    begrenzungVon(aussengrenze(bezug.grundstueck)),
     RAND_UM_GRUNDSTUECK_ANTEIL,
   )
-  const ausschnitt = berechneAusschnitt(begrenzung, BILD_BREITE_PX, BILD_HOEHE_PX, MAX_KACHEL_ZOOM)
+}
+
+function zeichneBezugsobjekt(flaeche: Zeichenflaeche, bezug: Bezugsobjekt): void {
+  if (bezug.art === 'grundstueck') zeichneGrundstueck(flaeche, bezug.grundstueck)
+  else zeichneObjektpunkt(flaeche, alsBildpunkt(bezug.position, flaeche.ausschnitt))
+}
+
+export async function zeichneObjektkarte(
+  bezug: Bezugsobjekt,
+  farben: PdfFarben,
+): Promise<Kartenbild> {
+  const ausschnitt = berechneAusschnitt(
+    detailBegrenzung(bezug),
+    BILD_BREITE_PX,
+    BILD_HOEHE_PX,
+    MAX_KACHEL_ZOOM,
+  )
   const flaeche = erstelleZeichenflaeche(ausschnitt, farben)
 
   await zeichneKacheln(flaeche)
-  zeichneGrundstueck(flaeche, grundstueck)
+  zeichneBezugsobjekt(flaeche, bezug)
   zeichneAttribution(flaeche)
   return alsKartenbild(flaeche)
 }
@@ -239,7 +254,7 @@ function uebersichtsBegrenzung(mittelpunkt: Koordinate, ortsKoordinaten: Koordin
 }
 
 export async function zeichneUmgebungskarte(
-  grundstueck: GrundstueckPolygon,
+  bezug: Bezugsobjekt,
   auswertung: UmgebungsAuswertung,
   farben: PdfFarben,
 ): Promise<Kartenbild> {
@@ -253,19 +268,17 @@ export async function zeichneUmgebungskarte(
     MAX_KACHEL_ZOOM,
   )
   const flaeche = erstelleZeichenflaeche(ausschnitt, farben)
-  const grundstueckspunkt = alsBildpunkt(mittelpunkt, ausschnitt)
+  const objektpunkt = alsBildpunkt(mittelpunkt, ausschnitt)
   const echtePositionen = ortsKoordinaten.map((koordinate) => alsBildpunkt(koordinate, ausschnitt))
-  const markerPositionen = verteileMarker(echtePositionen, MARKER_MINDESTABSTAND_PX, [
-    grundstueckspunkt,
-  ])
+  const markerPositionen = verteileMarker(echtePositionen, MARKER_MINDESTABSTAND_PX, [objektpunkt])
 
   await zeichneKacheln(flaeche)
   for (const { naechsterOrt } of gefundeneOrte) {
     const { geometrie } = naechsterOrt.ort
     if (geometrie.art === 'linie') zeichneStrasse(flaeche, geometrie.verlauf)
   }
-  zeichneGrundstueck(flaeche, grundstueck)
-  zeichneGrundstueckspunkt(flaeche, grundstueckspunkt)
+  if (bezug.art === 'grundstueck') zeichneGrundstueck(flaeche, bezug.grundstueck)
+  zeichneObjektpunkt(flaeche, objektpunkt)
   gefundeneOrte.forEach((ort, index) => {
     const echt = echtePositionen[index]
     const marker = markerPositionen[index]

@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import {
+  abstandZumBezugM,
   abstandZumGrundstueckM,
   berechneFlaecheQm,
   berechneMasse,
   berechneMittelpunkt,
   berechneUmfangM,
   type GrundstueckPolygon,
+  mittelpunktVon,
 } from '@/lib/geometrie'
 import {
+  adresseInQuadratmitte,
   FLAECHE_QUADRAT_QM,
   grundstueckAus,
   METER_PRO_TAUSENDSTEL_GRAD,
+  quadratAlsBezug,
   quadratAmAequator,
   UMFANG_QUADRAT_M,
 } from './testdaten'
@@ -107,5 +111,35 @@ describe('abstandZumGrundstueckM', () => {
       2 * METER_PRO_TAUSENDSTEL_GRAD,
       1,
     )
+  })
+})
+
+describe('Abstand ab Adresse (Wohnung)', () => {
+  it('misst die Luftlinie zwischen Adresse und Ort', () => {
+    const daneben: Ortsgeometrie = { art: 'punkt', position: { lat: 0.0005, lon: 0.002 } }
+
+    expect(abstandZumBezugM(adresseInQuadratmitte, daneben)).toBeCloseTo(166.8, 0)
+  })
+
+  it('misst den kürzesten Abstand zu einer Straße', () => {
+    const strasse: Ortsgeometrie = {
+      art: 'linie',
+      verlauf: [
+        { lat: -0.001, lon: 0.003 },
+        { lat: 0.002, lon: 0.003 },
+      ],
+    }
+
+    expect(abstandZumBezugM(adresseInQuadratmitte, strasse)).toBeCloseTo(278, 0)
+  })
+
+  it('nimmt die Adresse selbst als Mittelpunkt', () => {
+    expect(mittelpunktVon(adresseInQuadratmitte)).toEqual({ lat: 0.0005, lon: 0.0005 })
+  })
+
+  it('misst bei einem Grundstück weiter ab der Grenze', () => {
+    const daneben: Ortsgeometrie = { art: 'punkt', position: { lat: 0.0005, lon: 0.002 } }
+
+    expect(abstandZumBezugM(quadratAlsBezug, daneben)).toBeCloseTo(METER_PRO_TAUSENDSTEL_GRAD, 1)
   })
 })

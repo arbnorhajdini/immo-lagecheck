@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { formatiereFlaeche, formatiereLaenge } from '@/lib/format'
 import type { GrundstueckMasse } from '@/lib/geometrie'
 
-const props = defineProps<{ masse: GrundstueckMasse | null }>()
+const props = defineProps<{ masse: GrundstueckMasse | null; nummer: number | null }>()
 const emit = defineEmits<{ entfernen: [] }>()
 
 const flaeche = computed(() => (props.masse ? formatiereFlaeche(props.masse.flaecheQm) : ''))
@@ -16,7 +16,7 @@ const umfang = computed(() => (props.masse ? formatiereLaenge(props.masse.umfang
     class="rounded-lg border border-border bg-surface p-4 shadow-sm"
   >
     <h2 id="grundstueck-titel" class="text-base font-semibold text-fg">
-      2. Grundstück einzeichnen
+      {{ nummer }}. Grundstück einzeichnen
     </h2>
 
     <div aria-live="polite" class="mt-2">

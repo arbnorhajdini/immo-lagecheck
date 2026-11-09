@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick, shallowRef } from 'vue'
 import { useUmgebung } from '@/composables/useUmgebung'
-import type { GrundstueckPolygon } from '@/lib/geometrie'
+import type { Bezugsobjekt } from '@/lib/geometrie'
 import { OverpassFehler } from '@/lib/overpass'
-import { ortAn, quadratAmAequator, STAND_9_NOVEMBER_2026 } from './testdaten'
+import { ortAn, quadratAlsBezug, STAND_9_NOVEMBER_2026 } from './testdaten'
 
 const supermarktDaneben = ortAn('supermarkt', 'Markt am Eck', { lat: 0.0005, lon: 0.002 })
 
@@ -12,16 +12,16 @@ function geladen(ausZwischenspeicher: boolean) {
 }
 
 function richteEin(dienst = vi.fn().mockResolvedValue(geladen(false))) {
-  const grundstueck = shallowRef<GrundstueckPolygon | null>(quadratAmAequator)
-  const umgebung = useUmgebung(grundstueck, dienst)
-  return { grundstueck, umgebung, dienst }
+  const bezug = shallowRef<Bezugsobjekt | null>(quadratAlsBezug)
+  const umgebung = useUmgebung(bezug, dienst)
+  return { bezug, umgebung, dienst }
 }
 
 describe('useUmgebung', () => {
-  it('kann ohne Grundstück nicht prüfen', () => {
-    const { grundstueck, umgebung } = richteEin()
+  it('kann ohne Grundstück bzw. Adresse nicht prüfen', () => {
+    const { bezug, umgebung } = richteEin()
 
-    grundstueck.value = null
+    bezug.value = null
 
     expect(umgebung.kannPruefen.value).toBe(false)
   })
@@ -70,11 +70,11 @@ describe('useUmgebung', () => {
     expect(umgebung.statusText.value).toContain('antwortet gerade nicht')
   })
 
-  it('verwirft das Ergebnis, sobald sich das Grundstück ändert', async () => {
-    const { grundstueck, umgebung } = richteEin()
+  it('verwirft das Ergebnis, sobald sich Grundstück oder Adresse ändern', async () => {
+    const { bezug, umgebung } = richteEin()
     await umgebung.pruefen()
 
-    grundstueck.value = { ...quadratAmAequator }
+    bezug.value = { ...quadratAlsBezug }
     await nextTick()
 
     expect(umgebung.auswertung.value).toBeNull()

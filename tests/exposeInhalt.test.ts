@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { erstelleExposeInhalt, type ExposeDaten } from '@/lib/exposeInhalt'
 import { ermittleNaechsteOrte } from '@/lib/umgebung'
 import type { AdressTreffer, UmgebungsAuswertung } from '@/types'
-import { ortAn, quadratAmAequator, STAND_9_NOVEMBER_2026, strasseEntlang } from './testdaten'
+import {
+  HAUS,
+  ortAn,
+  quadratAlsBezug,
+  STAND_9_NOVEMBER_2026,
+  strasseEntlang,
+  WOHNUNG,
+} from './testdaten'
 
 const TRENNER = '\u00a0'
 
@@ -20,7 +27,7 @@ const auswertung: UmgebungsAuswertung = {
   umkreisM: 1500,
   stand: STAND_9_NOVEMBER_2026,
   ausZwischenspeicher: false,
-  ergebnisse: ermittleNaechsteOrte(quadratAmAequator, [
+  ergebnisse: ermittleNaechsteOrte(quadratAlsBezug, [
     ortAn('supermarkt', 'Edeka', { lat: 0.0005, lon: 0.004 }),
     ortAn('kita', 'St. Markus', { lat: 0.0005, lon: 0.002 }),
     ortAn('apotheke', 'Reislinger Apotheke', { lat: 0.0005, lon: 0.003 }),
@@ -34,6 +41,7 @@ const auswertung: UmgebungsAuswertung = {
 
 function inhaltMit(ueberschreibungen: Partial<ExposeDaten> = {}) {
   return erstelleExposeInhalt({
+    objektart: HAUS,
     adresse: ellenriederstrasse,
     masse: { flaecheQm: 499.4, umfangM: 86.2 },
     mittelpunkt: { lat: 52.41414, lon: 10.83708 },
@@ -52,10 +60,10 @@ describe('erstelleExposeInhalt', () => {
     expect(erstelltAm).toBe('Erstellt am 09.11.2026')
   })
 
-  it('nennt ohne Adresse die Koordinaten des Grundstücks', () => {
+  it('nennt ohne Adresse die Objektart und die Koordinaten', () => {
     const { titel, untertitel } = inhaltMit({ adresse: null })
 
-    expect(titel).toBe('Grundstück')
+    expect(titel).toBe('Haus mit Grundstück')
     expect(untertitel).toBe('52,4141° N, 10,8371° O')
   })
 
@@ -112,7 +120,38 @@ describe('erstelleExposeInhalt', () => {
       'Lage-Steckbrief_Ellenriederstrasse-64_38446-Wolfsburg_2026-11-09.pdf',
     )
     expect(inhaltMit({ adresse: null }).dateiname).toBe(
-      'Lage-Steckbrief_Grundstueck_2026-11-09.pdf',
+      'Lage-Steckbrief_Haus-mit-Grundstueck_2026-11-09.pdf',
     )
+  })
+
+  it('nennt die Objektart im Etikett und beschreibt die Karte passend', () => {
+    const haus = inhaltMit()
+    const wohnung = inhaltMit({ objektart: WOHNUNG, masse: null })
+
+    expect(haus.etikett).toBe('Lage-Steckbrief · Haus mit Grundstück')
+    expect(haus.kartenunterschrift).toContain('Eingezeichnete Grundstücksgrenze')
+    expect(wohnung.etikett).toBe('Lage-Steckbrief · Wohnung')
+    expect(wohnung.kartenunterschrift).toContain('Lage der Adresse')
+  })
+
+  it('zeigt bei einer Wohnung Objektart, Infrastruktur und nächstes Ziel statt Fläche', () => {
+    const kennzahlen = inhaltMit({ objektart: WOHNUNG, masse: null }).kennzahlen
+
+    expect(kennzahlen.map(({ bezeichnung }) => bezeichnung)).toEqual([
+      'Objektart',
+      'Infrastruktur',
+      'Nächstes Ziel',
+    ])
+    expect(kennzahlen[0]?.wert).toBe('Wohnung')
+    expect(kennzahlen[2]?.zusatz).toBe('Kita')
+  })
+
+  it('misst bei einer Wohnung ab der Adresse und erklärt das im Hinweis', () => {
+    const inhalt = inhaltMit({ objektart: WOHNUNG, masse: null })
+
+    expect(inhalt.umgebung?.unterzeile).toContain('Luftlinie ab Adresse')
+    expect(inhalt.umgebung?.legende).toContain('Schwarzer Punkt: Adresse')
+    expect(inhalt.hinweis).toContain('ab der Adresse des Gebäudes')
+    expect(inhalt.hinweis).not.toContain('Fläche')
   })
 })

@@ -3,6 +3,7 @@ import {
   booleanIntersects,
   booleanPointInPolygon,
   centroid,
+  distance,
   length,
   lineString,
   point,
@@ -12,6 +13,9 @@ import type { Feature, LineString, Polygon, Position } from 'geojson'
 import type { Koordinate, Ortsgeometrie } from '@/types'
 
 export type GrundstueckPolygon = Feature<Polygon>
+
+export type Bezugsobjekt =
+  { art: 'grundstueck'; grundstueck: GrundstueckPolygon } | { art: 'adresse'; position: Koordinate }
 
 export interface GrundstueckMasse {
   flaecheQm: number
@@ -91,4 +95,27 @@ export function abstandZumGrundstueckM(
   return geometrie.art === 'punkt'
     ? abstandEinesPunktesM(grundstueck, geometrie.position)
     : abstandEinerLinieM(grundstueck, geometrie.verlauf)
+}
+
+function abstandZwischenPunktenM(von: Koordinate, nach: Koordinate): number {
+  return distance(point(alsPosition(von)), point(alsPosition(nach)), IN_METERN)
+}
+
+function abstandVonAdresseM(adresse: Koordinate, geometrie: Ortsgeometrie): number {
+  if (geometrie.art === 'punkt') return abstandZwischenPunktenM(adresse, geometrie.position)
+  const [einzigerPunkt] = geometrie.verlauf
+  if (geometrie.verlauf.length < MIN_PUNKTE_EINER_LINIE) {
+    return einzigerPunkt ? abstandZwischenPunktenM(adresse, einzigerPunkt) : Infinity
+  }
+  return abstandZurLinieM(alsPosition(adresse), lineString(geometrie.verlauf.map(alsPosition)))
+}
+
+export function abstandZumBezugM(bezug: Bezugsobjekt, geometrie: Ortsgeometrie): number {
+  return bezug.art === 'grundstueck'
+    ? abstandZumGrundstueckM(bezug.grundstueck, geometrie)
+    : abstandVonAdresseM(bezug.position, geometrie)
+}
+
+export function mittelpunktVon(bezug: Bezugsobjekt): Koordinate {
+  return bezug.art === 'grundstueck' ? berechneMittelpunkt(bezug.grundstueck) : bezug.position
 }
