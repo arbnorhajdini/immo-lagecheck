@@ -3,7 +3,7 @@ import L from 'leaflet'
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
 import type { GrundstueckPolygon } from '@/lib/geometrie'
 import { aktiviereGrundstueckZeichnen, type GrundstueckZeichnen } from '@/lib/grundstueckZeichnen'
-import { alsSichererText } from '@/lib/kartenText'
+import { alsSichererText, NUR_ZUR_ANZEIGE } from '@/lib/kartenAnzeige'
 import { erstelleUmgebungAufKarte, type UmgebungAufKarte } from '@/lib/umgebungAufKarte'
 import type { AdressTreffer, UmgebungsAuswertung } from '@/types'
 
@@ -64,7 +64,7 @@ function entferneAdressMarker(): void {
 
 function setzeAdressMarker(aktiveKarte: L.Map, adresse: AdressTreffer): void {
   adressMarker = L.marker([adresse.lat, adresse.lon], {
-    pmIgnore: true,
+    ...NUR_ZUR_ANZEIGE,
     icon: ADRESS_MARKER_ICON,
     title: adresse.kurzName,
     alt: adresse.kurzName,

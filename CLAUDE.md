@@ -52,9 +52,10 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
   bis zu 3 Versuche mit Pause (0 / 2 / 5 s), abwechselnd `overpass-api.de` und
   `overpass.private.coffee` (siehe `src/lib/overpass.ts`).
 - Fremde Texte (Adressen, OSM-Namen) nie als HTML in Leaflet-Tooltips/Popups einsetzen,
-  sondern über `alsSichererText()` (`src/lib/kartenText.ts`) – Schutz vor XSS.
-- Eigene Kartenobjekte (Adress-Marker, Umgebung) mit `pmIgnore: true` anlegen, damit Geoman sie
-  nicht bearbeiten, verschieben oder löschen lässt.
+  sondern über `alsSichererText()` (`src/lib/kartenAnzeige.ts`) – Schutz vor XSS.
+- Eigene Kartenobjekte (Adress-Marker, Umgebung) mit `NUR_ZUR_ANZEIGE` anlegen
+  (`pmIgnore` + `bubblingMouseEvents`): Geoman lässt sie nicht bearbeiten oder löschen, und
+  Klicks gehen an die Karte durch – sonst kann man auf einem Marker keine Grundstücksecke setzen.
 
 ## MVP (in dieser Reihenfolge)
 
@@ -169,7 +170,7 @@ src/
     umgebungKategorien.ts  // die 8 Kategorien – Overpass-Filter und Zuordnung aus einer Quelle
     umgebung.ts            // nächstgelegener Ort je Kategorie
     umgebungAufKarte.ts    // Marker, Hauptstraße, 1,5-km-Umkreis
-    kartenText.ts          // alsSichererText() für Tooltips
+    kartenAnzeige.ts       // alsSichererText() für Tooltips, NUR_ZUR_ANZEIGE für Marker
     steckbrief.ts          // Text des Lage-Steckbriefs (reine Funktion)
     typpruefung.ts         // istObjekt, alsZahl für fremde JSON-Antworten
   types.ts

@@ -1,11 +1,10 @@
 import L from 'leaflet'
 import { formatiereLaenge } from '@/lib/format'
-import { alsSichererText } from '@/lib/kartenText'
+import { alsSichererText, NUR_ZUR_ANZEIGE } from '@/lib/kartenAnzeige'
 import type { KategorieErgebnis, Koordinate, NaechsterOrt, UmgebungsAuswertung } from '@/types'
 
 const MARKER_GROESSE_PX = 30
 const KARTEN_INNENABSTAND_PX: L.PointTuple = [16, 16]
-const NICHT_BEARBEITBAR = { pmIgnore: true } as const
 
 export interface UmgebungAufKarte {
   zeige(auswertung: UmgebungsAuswertung | null): void
@@ -34,13 +33,13 @@ function erstelleKartenobjekt(ergebnis: KategorieErgebnis, naechster: NaechsterO
 
   if (geometrie.art === 'linie') {
     return L.polyline(geometrie.verlauf.map(alsLatLng), {
-      ...NICHT_BEARBEITBAR,
+      ...NUR_ZUR_ANZEIGE,
       className: 'umgebung-strasse',
     }).bindTooltip(alsSichererText(text), { sticky: true })
   }
 
   return L.marker(alsLatLng(geometrie.position), {
-    ...NICHT_BEARBEITBAR,
+    ...NUR_ZUR_ANZEIGE,
     icon: erstelleKategorieIcon(ergebnis.symbol),
     title: text,
     alt: text,
@@ -49,7 +48,7 @@ function erstelleKartenobjekt(ergebnis: KategorieErgebnis, naechster: NaechsterO
 
 function erstelleUmkreis(auswertung: UmgebungsAuswertung): L.Circle {
   return L.circle(alsLatLng(auswertung.mittelpunkt), {
-    ...NICHT_BEARBEITBAR,
+    ...NUR_ZUR_ANZEIGE,
     radius: auswertung.umkreisM,
     className: 'umgebung-umkreis',
     interactive: false,
@@ -57,7 +56,7 @@ function erstelleUmkreis(auswertung: UmgebungsAuswertung): L.Circle {
 }
 
 export function erstelleUmgebungAufKarte(karte: L.Map): UmgebungAufKarte {
-  const ebene = L.layerGroup([], NICHT_BEARBEITBAR).addTo(karte)
+  const ebene = L.layerGroup([], { pmIgnore: true }).addTo(karte)
 
   function zeige(auswertung: UmgebungsAuswertung | null): void {
     ebene.clearLayers()
