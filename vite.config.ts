@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
 
-const KARTENBIBLIOTHEKEN = /node_modules[\\/](leaflet|@geoman-io)[\\/]/
+const BUNDLE_MIT_LEAFLET_UND_GEOMAN_KB = 600
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
@@ -13,13 +13,7 @@ export default defineConfig({
     },
   },
   build: {
-    rolldownOptions: {
-      output: {
-        codeSplitting: {
-          groups: [{ name: 'karte', test: KARTENBIBLIOTHEKEN }],
-        },
-      },
-    },
+    chunkSizeWarningLimit: BUNDLE_MIT_LEAFLET_UND_GEOMAN_KB,
   },
   test: {
     environment: 'jsdom',

@@ -39,7 +39,7 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
 - Tests: **Vitest** (+ @vue/test-utils für Komponenten)
 - Code-Qualität: **ESLint** (flat config, eslint-plugin-vue, typescript-eslint), **Prettier**, **vue-tsc**
 - Git: **Husky**, **lint-staged**, **commitlint** (Conventional Commits), **GitHub Actions** CI
-- Später Deployment auf **Vercel**
+- Deployment auf **Vercel** (privater Bereich „ArbnorHajdini's projects“): https://immo-lagecheck.vercel.app
 
 ### Regeln für die freien OSM-Dienste
 
@@ -233,3 +233,9 @@ Gilt für allen Code (TypeScript, Vue, CSS, HTML, Skripte, Konfiguration, Tests)
 - Logik in Composables und `lib/`, Komponenten bleiben schlank.
 - `npm run lint`, `npm run lint:colors`, `npm run type-check`, `npm run test` und `npm run build`
   müssen ohne Fehler durchlaufen, bevor ein Schritt als fertig gilt.
+- **Vor jedem Deployment den Produktions-Build im Browser prüfen** (`npm run build`, dann
+  `npm run preview` auf Port 4173): Manche Fehler gibt es nur im Build, nicht im Dev-Server –
+  z. B. Template-Refs, die wie eine Setup-Variable heißen (`ref="karte"` neben `let karte`), oder
+  Geoman, das vor Leaflet ausgeführt wird, wenn man die Kartenbibliotheken in einen eigenen Chunk
+  auslagert. Deshalb: Ref-Namen = Name der `useTemplateRef`-Variable, kein manuelles Chunk-Splitting
+  für Leaflet/Geoman.

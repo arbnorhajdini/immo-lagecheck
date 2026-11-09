@@ -33,7 +33,7 @@ const ADRESS_MARKER_ICON = L.divIcon({
   tooltipAnchor: [0, -36],
 })
 
-const kartenElement = useTemplateRef<HTMLDivElement>('karte')
+const kartenElement = useTemplateRef<HTMLDivElement>('kartenElement')
 
 let karte: L.Map | null = null
 let adressMarker: L.Marker | null = null
@@ -132,6 +132,6 @@ onBeforeUnmount(() => {
     aria-label="Karte"
     class="overflow-hidden rounded-lg border border-border bg-surface shadow-sm"
   >
-    <div ref="karte" class="h-[60vh] min-h-80 w-full lg:h-full lg:min-h-[32rem]"></div>
+    <div ref="kartenElement" class="h-[60vh] min-h-80 w-full lg:h-full lg:min-h-[32rem]"></div>
   </section>
 </template>
