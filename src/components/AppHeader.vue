@@ -13,7 +13,7 @@ const THEME_OPTIONEN: { modus: ThemeModus; beschriftung: string }[] = [
 <template>
   <header class="border-b border-border bg-surface">
     <div
-      class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6"
+      class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6"
     >
       <div>
         <h1 class="text-lg font-semibold text-fg sm:text-xl">Lage-Check</h1>

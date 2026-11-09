@@ -1,0 +1,70 @@
+.leaflet-container {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface-muted);
+}
+
+.leaflet-container a {
+  color: var(--color-primary);
+}
+
+.leaflet-tile-pane {
+  filter: var(--map-tile-filter);
+}
+
+.leaflet-touch .leaflet-bar {
+  border-color: var(--color-border-control);
+  box-shadow: var(--shadow-sm);
+}
+
+.leaflet-bar a,
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-bottom-color: var(--color-border);
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--color-surface-muted);
+}
+
+.leaflet-bar a.leaflet-disabled {
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-text-muted);
+}
+
+.leaflet-tooltip {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: var(--color-surface);
+}
+
+.leaflet-tooltip-bottom::before {
+  border-bottom-color: var(--color-surface);
+}
+
+.adress-marker {
+  color: var(--color-primary);
+  filter: drop-shadow(var(--shadow-sm));
+}
+
+.adress-marker__pin {
+  fill: currentColor;
+  stroke: var(--color-primary-contrast);
+  stroke-width: 1.5;
+}
+
+.adress-marker__punkt {
+  fill: var(--color-primary-contrast);
+}
