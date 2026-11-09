@@ -85,11 +85,23 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
    Kompakter Textblock (Adresse, Fläche, Umfang, Entfernungen) mit Button „Kopieren“
    (Clipboard API) und kurzer Bestätigung.
 
+## Erweiterungen (umgesetzt)
+
+5. **PDF-Exposé** („Als PDF-Exposé speichern“ im Lage-Steckbrief)
+   A4, echte PDF-Datei mit jsPDF (erst beim Klick per `import()` geladen), Text als Vektor.
+   - Seite 1: Adresse, Detailkarte mit Grundstück, Kennzahlen (Fläche, Umfang, Infrastruktur),
+     „Das Wichtigste in der Nähe“ (4 nächste Ziele), Hinweis „ohne Gewähr, nicht amtlich“.
+   - Seite 2 (nur nach „Umgebung prüfen“): Übersichtskarte mit nummerierten Markern
+     (überlappende werden versetzt, mit Führungslinie) und Tabelle mit denselben Nummern.
+   - Karten werden aus OSM-Kacheln (CORS erlaubt) in doppelter Auflösung selbst gezeichnet –
+     kein Screenshot der Live-Karte, daher immer helle Druckfarben, auch im Dark Mode.
+   - Helvetica im PDF kennt nur WinAnsi: fremde Zeichen über `alsPdfText()` ersetzen.
+
 ## Nicht im MVP (später)
 
 - Grundstücksgrenzen automatisch aus dem Liegenschaftskataster (NRW Open Data)
 - echte Fußwege statt Luftlinie (OSRM)
-- PDF-Export, mehrere Grundstücke, Speichern
+- mehrere Grundstücke, Speichern
 - Einbindung als Shortcode in das WordPress-Plugin `wp-immo-kit` (Nachbar-Repo)
 
 ## Styling und Theming
@@ -103,6 +115,7 @@ Keine Farbcodes, Abstände oder Radien „hart“ in Komponenten.
     `--color-border-control` (Rahmen von Bedienelementen, ≥ 3:1),
     `--color-primary`, `--color-primary-hover`, `--color-primary-contrast`, `--color-danger`, `--color-success`,
     `--color-warning`, `--color-focus`, außerdem Kartenfarben `--color-plot-fill`, `--color-plot-stroke`
+  - PDF-Druckfarben `--pdf-*` (nur in `:root`, gelten auch im Dark Mode; gelesen in `src/lib/pdfFarben.ts`)
   - Radien (`--radius-sm/md/lg`), Schatten (`--shadow-sm/md`), Schriften (`--font-sans`)
 - **Light Mode** in `:root`, **Dark Mode** in `.dark` (gleiche Variablennamen, andere Werte).
 - In `src/styles/main.css` werden die Tokens mit `@theme inline` an Tailwind gebunden, sodass
@@ -158,13 +171,14 @@ src/
     KarteGrundstueck.vue
     GrundstueckAngaben.vue // Anleitung, Fläche, Umfang, „Grundstück entfernen“
     UmgebungListe.vue      // Button „Umgebung prüfen“, Ergebnis je Kategorie
-    LageSteckbrief.vue     // Textvorschau, „Kopieren“, Bestätigung
+    LageSteckbrief.vue     // Textvorschau, „Kopieren“, „Als PDF-Exposé speichern“
   composables/
     useTheme.ts            // Hell / Dunkel / System
     useAdressSuche.ts      // Nominatim
     useGrundstueck.ts      // Polygon, Fläche, Umfang
     useUmgebung.ts         // Overpass + nächstgelegene Orte
     useZwischenablage.ts   // Clipboard API, Bestätigung, Hinweis bei Fehler
+    useExposeExport.ts     // Status des PDF-Exports
   lib/
     nominatim.ts           // Such-URL, Antwort parsen, 1 Anfrage/Sekunde
     geometrie.ts           // reine Turf-Funktionen (testbar)
@@ -176,6 +190,14 @@ src/
     umgebungAufKarte.ts    // Marker, Hauptstraße, 1,5-km-Umkreis
     kartenAnzeige.ts       // alsSichererText() für Tooltips, NUR_ZUR_ANZEIGE für Marker
     steckbrief.ts          // Text des Lage-Steckbriefs (reine Funktion)
+    expose.ts              // Ablauf PDF-Export: Inhalt → Karten → PDF → speichern
+    exposeInhalt.ts        // Texte, Kennzahlen, Tabelle, Dateiname (reine Funktion)
+    exposePdf.ts           // A4-Layout mit jsPDF (Maße als benannte mm-Konstanten)
+    kartenbild.ts          // Kartenbild aus OSM-Kacheln + Grundstück + Marker (Canvas)
+    kachelMathe.ts         // Web-Mercator, Zoom, Kacheln, Begrenzungen (reine Funktionen)
+    markerVerteilung.ts    // überlappende Marker versetzen
+    pdfFarben.ts           // --pdf-* Tokens lesen
+    pdfText.ts             // Text auf WinAnsi-Zeichensatz bringen
     umgebungsZwischenspeicher.ts // Overpass-Orte 7 Tage im localStorage
     speicher.ts            // mitLocalStorage() – sicherer Zugriff mit try/catch
     typpruefung.ts         // istObjekt, alsZahl für fremde JSON-Antworten
@@ -190,6 +212,11 @@ tests/
   umgebung.test.ts
   steckbrief.test.ts
   useZwischenablage.test.ts
+  useExposeExport.test.ts
+  exposeInhalt.test.ts
+  kachelMathe.test.ts
+  markerVerteilung.test.ts
+  pdfText.test.ts
   umgebungsZwischenspeicher.test.ts
   geometrie.test.ts
   format.test.ts

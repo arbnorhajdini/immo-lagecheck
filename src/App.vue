@@ -34,7 +34,12 @@ const hatGrundstueck = computed(() => grundstueck.value !== null)
           :hat-grundstueck="hatGrundstueck"
           @pruefen="pruefen"
         />
-        <LageSteckbrief :adresse="adresse" :masse="masse" :auswertung="auswertung" />
+        <LageSteckbrief
+          :adresse="adresse"
+          :grundstueck="grundstueck"
+          :masse="masse"
+          :auswertung="auswertung"
+        />
       </div>
 
       <KarteGrundstueck

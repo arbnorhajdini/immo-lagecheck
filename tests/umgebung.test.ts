@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ermittleNaechsteOrte } from '@/lib/umgebung'
+import { ermittleNaechsteOrte, nummeriereGefundeneOrte } from '@/lib/umgebung'
 import { UMGEBUNGS_KATEGORIEN } from '@/lib/umgebungKategorien'
 import { ortAn, quadratAmAequator, strasseEntlang } from './testdaten'
 
@@ -48,5 +48,24 @@ describe('ermittleNaechsteOrte', () => {
 
     expect(hauptstrasse?.naechsterOrt?.ort.name).toBe('B 188')
     expect(hauptstrasse?.naechsterOrt?.abstandM).toBeCloseTo(222.4, 0)
+  })
+})
+
+describe('nummeriereGefundeneOrte', () => {
+  it('vergibt fortlaufende Nummern nur an Kategorien mit Treffer', () => {
+    const ergebnisse = ermittleNaechsteOrte(quadratAmAequator, [
+      ortAn('supermarkt', 'Edeka', { lat: 0.0005, lon: 0.002 }),
+      ortAn('apotheke', 'Löwen-Apotheke', { lat: 0.0005, lon: 0.003 }),
+    ])
+
+    const nummeriert = nummeriereGefundeneOrte(ergebnisse).map(({ nummer, ergebnis }) => [
+      nummer,
+      ergebnis.kategorie,
+    ])
+
+    expect(nummeriert).toEqual([
+      [1, 'supermarkt'],
+      [2, 'apotheke'],
+    ])
   })
 })

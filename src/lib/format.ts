@@ -26,12 +26,30 @@ function mitEinheit(zahl: string, einheit: string): string {
   return `${zahl}${ZAHL_UND_EINHEIT_TRENNER}${einheit}`
 }
 
-export function formatiereFlaeche(flaecheQm: number): string {
-  const inQuadratmetern = mitEinheit(ganzeZahl.format(flaecheQm), 'm²')
-  if (Math.round(flaecheQm) < QM_PRO_HEKTAR) return inQuadratmetern
+export function formatiereQuadratmeter(flaecheQm: number): string {
+  return mitEinheit(ganzeZahl.format(flaecheQm), 'm²')
+}
 
-  const inHektar = mitEinheit(zahlMitZweiNachkommastellen.format(flaecheQm / QM_PRO_HEKTAR), 'ha')
-  return `${inQuadratmetern} (${inHektar})`
+export function formatiereHektar(flaecheQm: number): string {
+  return mitEinheit(zahlMitZweiNachkommastellen.format(flaecheQm / QM_PRO_HEKTAR), 'ha')
+}
+
+export function istHektarRelevant(flaecheQm: number): boolean {
+  return Math.round(flaecheQm) >= QM_PRO_HEKTAR
+}
+
+export function formatiereFlaeche(flaecheQm: number): string {
+  const inQuadratmetern = formatiereQuadratmeter(flaecheQm)
+  return istHektarRelevant(flaecheQm)
+    ? `${inQuadratmetern} (${formatiereHektar(flaecheQm)})`
+    : inQuadratmetern
+}
+
+export function formatiereIsoDatum(zeitstempel: number): string {
+  const datum = new Date(zeitstempel)
+  return [datum.getFullYear(), datum.getMonth() + 1, datum.getDate()]
+    .map((teil) => String(teil).padStart(2, '0'))
+    .join('-')
 }
 
 export function formatiereLaenge(laengeM: number): string {

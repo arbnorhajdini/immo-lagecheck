@@ -30,6 +30,17 @@
   --radius-lg: 0.75rem;
   --shadow-sm: 0 1px 2px rgb(16 24 32 / 0.08);
   --shadow-md: 0 4px 12px rgb(16 24 32 / 0.12);
+  --pdf-primary: #0b6a62;
+  --pdf-primary-contrast: #ffffff;
+  --pdf-text: #18212b;
+  --pdf-text-muted: #556270;
+  --pdf-border: #d5dce3;
+  --pdf-surface: #f3f6f8;
+  --pdf-plot-fill: #0b6a62;
+  --pdf-plot-stroke: #08564f;
+  --pdf-road: #c2410c;
+  --pdf-tile-missing: #e9edf0;
+
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 

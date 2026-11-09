@@ -34,6 +34,7 @@
   "dependencies": {
     "@geoman-io/leaflet-geoman-free": "^2.20.6",
     "@turf/turf": "^7.4.0",
+    "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
     "vue": "^3.5.45"
   },

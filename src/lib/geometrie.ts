@@ -25,7 +25,7 @@ function alsPosition({ lat, lon }: Koordinate): Position {
   return [lon, lat]
 }
 
-function alsKoordinate(position: Position): Koordinate {
+export function alsKoordinate(position: Position): Koordinate {
   const [lon, lat] = position as [number, number]
   return { lat, lon }
 }

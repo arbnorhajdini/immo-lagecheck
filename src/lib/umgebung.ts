@@ -31,3 +31,17 @@ export function ermittleNaechsteOrte(
     ),
   }))
 }
+
+export interface NummerierterOrt {
+  nummer: number
+  ergebnis: KategorieErgebnis
+  naechsterOrt: NaechsterOrt
+}
+
+export function nummeriereGefundeneOrte(ergebnisse: KategorieErgebnis[]): NummerierterOrt[] {
+  return ergebnisse
+    .flatMap((ergebnis) =>
+      ergebnis.naechsterOrt ? [{ ergebnis, naechsterOrt: ergebnis.naechsterOrt }] : [],
+    )
+    .map((gefunden, index) => ({ ...gefunden, nummer: index + 1 }))
+}
