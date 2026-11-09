@@ -12,6 +12,16 @@ const zahlMitZweiNachkommastellen = new Intl.NumberFormat('de-DE', {
   maximumFractionDigits: 2,
 })
 
+const deutschesDatum = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+})
+
+export function formatiereDatum(zeitstempel: number): string {
+  return deutschesDatum.format(zeitstempel)
+}
+
 function mitEinheit(zahl: string, einheit: string): string {
   return `${zahl}${ZAHL_UND_EINHEIT_TRENNER}${einheit}`
 }

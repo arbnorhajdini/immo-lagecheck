@@ -5,6 +5,7 @@ export const KANTENLAENGE_GRAD = 0.001
 export const FLAECHE_QUADRAT_QM = 12_364.3
 export const UMFANG_QUADRAT_M = 444.78
 export const METER_PRO_TAUSENDSTEL_GRAD = 111.195
+export const STAND_9_NOVEMBER_2026 = Date.UTC(2026, 10, 9, 12)
 
 export function grundstueckAus(eckpunkte: [number, number][]): GrundstueckPolygon {
   const [ersterEckpunkt] = eckpunkte

@@ -1,9 +1,10 @@
 import { computed, ref, shallowRef, watch, type Ref } from 'vue'
-import { formatiereLaenge } from '@/lib/format'
+import { formatiereDatum, formatiereLaenge } from '@/lib/format'
 import { berechneMittelpunkt, type GrundstueckPolygon } from '@/lib/geometrie'
-import { istZeitueberschreitung, ladeUmgebung, OverpassFehler } from '@/lib/overpass'
+import { istZeitueberschreitung, OverpassFehler } from '@/lib/overpass'
 import { ermittleNaechsteOrte } from '@/lib/umgebung'
 import { UMKREIS_M } from '@/lib/umgebungKategorien'
+import { ladeUmgebungMitZwischenspeicher } from '@/lib/umgebungsZwischenspeicher'
 import type { UmgebungsAuswertung } from '@/types'
 
 export type UmgebungsStatus = 'bereit' | 'laedt' | 'fertig' | 'fehler'
@@ -31,6 +32,15 @@ function verstaendlicheFehlermeldung(fehler: unknown): string {
   return 'Die Umgebung konnte gerade nicht geprüft werden. Bitte später erneut versuchen.'
 }
 
+function zusammenfassung({ ergebnisse, stand, ausZwischenspeicher }: UmgebungsAuswertung) {
+  const gefunden = ergebnisse.filter(({ naechsterOrt }) => naechsterOrt !== null).length
+  const ergebnis = `${gefunden} von ${ergebnisse.length} Kategorien im Umkreis von ${formatiereLaenge(UMKREIS_M)} gefunden.`
+  const herkunft = ausZwischenspeicher
+    ? `Gespeichertes Ergebnis vom ${formatiereDatum(stand)}.`
+    : ''
+  return [ergebnis, herkunft].filter(Boolean).join(' ')
+}
+
 export function statusTextFuer(
   status: UmgebungsStatus,
   auswertung: UmgebungsAuswertung | null,
@@ -43,17 +53,14 @@ export function statusTextFuer(
       return 'Umgebung wird geprüft … Bei ausgelasteten OpenStreetMap-Servern kann das bis zu einer Minute dauern.'
     case 'fehler':
       return fehlermeldung
-    case 'fertig': {
-      const ergebnisse = auswertung?.ergebnisse ?? []
-      const gefunden = ergebnisse.filter(({ naechsterOrt }) => naechsterOrt !== null).length
-      return `${gefunden} von ${ergebnisse.length} Kategorien im Umkreis von ${formatiereLaenge(UMKREIS_M)} gefunden.`
-    }
+    case 'fertig':
+      return auswertung ? zusammenfassung(auswertung) : ''
   }
 }
 
 export function useUmgebung(
   grundstueck: Readonly<Ref<GrundstueckPolygon | null>>,
-  ladeBeimDienst = ladeUmgebung,
+  ladeBeimDienst = ladeUmgebungMitZwischenspeicher,
 ) {
   const status = ref<UmgebungsStatus>('bereit')
   const auswertung = shallowRef<UmgebungsAuswertung | null>(null)
@@ -94,10 +101,15 @@ export function useUmgebung(
     status.value = 'laedt'
 
     try {
-      const orte = await ladeBeimDienst(mittelpunkt, signal)
+      const { orte, stand, ausZwischenspeicher } = await ladeBeimDienst(mittelpunkt, signal)
       if (signal.aborted) return
-      const ergebnisse = ermittleNaechsteOrte(gepruefteFlaeche, orte)
-      auswertung.value = { mittelpunkt, umkreisM: UMKREIS_M, ergebnisse }
+      auswertung.value = {
+        mittelpunkt,
+        umkreisM: UMKREIS_M,
+        ergebnisse: ermittleNaechsteOrte(gepruefteFlaeche, orte),
+        stand,
+        ausZwischenspeicher,
+      }
       status.value = 'fertig'
     } catch (fehler) {
       if (!signal.aborted) zeigeFehler(fehler)

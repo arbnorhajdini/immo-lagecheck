@@ -1,4 +1,4 @@
-import { formatiereFlaeche, formatiereLaenge } from '@/lib/format'
+import { formatiereDatum, formatiereFlaeche, formatiereLaenge } from '@/lib/format'
 import type { GrundstueckMasse } from '@/lib/geometrie'
 import type { AdressTreffer, KategorieErgebnis, UmgebungsAuswertung } from '@/types'
 
@@ -21,7 +21,7 @@ function umgebungsAbschnitt(auswertung: UmgebungsAuswertung | null): string[] {
   if (!auswertung) return ['Umgebung: noch nicht geprüft']
   const umkreis = formatiereLaenge(auswertung.umkreisM)
   return [
-    `Umgebung (Luftlinie ab Grundstücksgrenze, Umkreis ${umkreis}):`,
+    `Umgebung (Luftlinie ab Grundstücksgrenze, Umkreis ${umkreis}, Stand ${formatiereDatum(auswertung.stand)}):`,
     ...auswertung.ergebnisse.map((ergebnis) => umgebungsZeile(ergebnis, umkreis)),
   ]
 }

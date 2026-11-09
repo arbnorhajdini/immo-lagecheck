@@ -51,6 +51,10 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
   Deshalb: Gesamtzeitlimit 60 s; nur bei Überlast (429/502/503/504, Laufzeitfehler, Netzwerkfehler)
   bis zu 3 Versuche mit Pause (0 / 2 / 5 s), abwechselnd `overpass-api.de` und
   `overpass.private.coffee` (siehe `src/lib/overpass.ts`).
+- Overpass-Ergebnisse (rohe Orte) 7 Tage im `localStorage` zwischenspeichern, Schlüssel =
+  Grundstücks-Mittelpunkt auf 3 Nachkommastellen (`src/lib/umgebungsZwischenspeicher.ts`).
+  Entfernungen werden immer neu aus dem aktuellen Grundstück berechnet; Status und Steckbrief
+  nennen den Stand der Daten. Vor einer Vorführung die Demo-Adresse einmal prüfen.
 - Fremde Texte (Adressen, OSM-Namen) nie als HTML in Leaflet-Tooltips/Popups einsetzen,
   sondern über `alsSichererText()` (`src/lib/kartenAnzeige.ts`) – Schutz vor XSS.
 - Eigene Kartenobjekte (Adress-Marker, Umgebung) mit `NUR_ZUR_ANZEIGE` anlegen
@@ -172,6 +176,8 @@ src/
     umgebungAufKarte.ts    // Marker, Hauptstraße, 1,5-km-Umkreis
     kartenAnzeige.ts       // alsSichererText() für Tooltips, NUR_ZUR_ANZEIGE für Marker
     steckbrief.ts          // Text des Lage-Steckbriefs (reine Funktion)
+    umgebungsZwischenspeicher.ts // Overpass-Orte 7 Tage im localStorage
+    speicher.ts            // mitLocalStorage() – sicherer Zugriff mit try/catch
     typpruefung.ts         // istObjekt, alsZahl für fremde JSON-Antworten
   types.ts
 tests/
@@ -184,6 +190,7 @@ tests/
   umgebung.test.ts
   steckbrief.test.ts
   useZwischenablage.test.ts
+  umgebungsZwischenspeicher.test.ts
   geometrie.test.ts
   format.test.ts
   testdaten.ts             // gemeinsame Testdaten (Quadrat am Äquator, Orte, Straßen)

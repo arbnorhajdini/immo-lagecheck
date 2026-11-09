@@ -1,4 +1,5 @@
 import { computed, readonly, ref, watchEffect } from 'vue'
+import { mitLocalStorage } from '@/lib/speicher'
 
 export type ThemeModus = 'light' | 'dark' | 'system'
 export type Theme = 'light' | 'dark'
@@ -13,17 +14,6 @@ export function istThemeModus(wert: unknown): wert is ThemeModus {
 export function ermittleTheme(modus: ThemeModus, systemBevorzugtDunkel: boolean): Theme {
   if (modus === 'system') return systemBevorzugtDunkel ? 'dark' : 'light'
   return modus
-}
-
-function mitLocalStorage<Ergebnis>(
-  aktion: (speicher: Storage) => Ergebnis,
-  ersatzwert: Ergebnis,
-): Ergebnis {
-  try {
-    return aktion(localStorage)
-  } catch {
-    return ersatzwert
-  }
 }
 
 function ladeGespeichertenModus(): ThemeModus {

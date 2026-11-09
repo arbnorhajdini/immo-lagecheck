@@ -55,4 +55,6 @@ export interface UmgebungsAuswertung {
   mittelpunkt: Koordinate
   umkreisM: number
   ergebnisse: KategorieErgebnis[]
+  stand: number
+  ausZwischenspeicher: boolean
 }

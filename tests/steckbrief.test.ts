@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { erstelleSteckbrief } from '@/lib/steckbrief'
 import { ermittleNaechsteOrte } from '@/lib/umgebung'
 import type { AdressTreffer, UmgebungsAuswertung } from '@/types'
-import { ortAn, quadratAmAequator, strasseEntlang } from './testdaten'
+import { ortAn, quadratAmAequator, STAND_9_NOVEMBER_2026, strasseEntlang } from './testdaten'
 
 const TRENNER = '\u00a0'
 
@@ -22,6 +22,8 @@ function auswertungMit(orte: Parameters<typeof ermittleNaechsteOrte>[1]): Umgebu
     mittelpunkt: { lat: 0.0005, lon: 0.0005 },
     umkreisM: 1500,
     ergebnisse: ermittleNaechsteOrte(quadratAmAequator, orte),
+    stand: STAND_9_NOVEMBER_2026,
+    ausZwischenspeicher: false,
   }
 }
 
@@ -63,7 +65,7 @@ describe('erstelleSteckbrief', () => {
     const steckbrief = erstelleSteckbrief({ adresse: null, masse, auswertung })
 
     expect(steckbrief).toContain(
-      `Umgebung (Luftlinie ab Grundstücksgrenze, Umkreis 1,5${TRENNER}km):`,
+      `Umgebung (Luftlinie ab Grundstücksgrenze, Umkreis 1,5${TRENNER}km, Stand 09.11.2026):`,
     )
     expect(steckbrief).toContain(`- Supermarkt: Edeka, 111${TRENNER}m`)
     expect(steckbrief).toContain(`- Hauptstraße: L 290, 222${TRENNER}m`)

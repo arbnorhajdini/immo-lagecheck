@@ -3,11 +3,15 @@ import { nextTick, shallowRef } from 'vue'
 import { useUmgebung } from '@/composables/useUmgebung'
 import type { GrundstueckPolygon } from '@/lib/geometrie'
 import { OverpassFehler } from '@/lib/overpass'
-import { ortAn, quadratAmAequator } from './testdaten'
+import { ortAn, quadratAmAequator, STAND_9_NOVEMBER_2026 } from './testdaten'
 
 const supermarktDaneben = ortAn('supermarkt', 'Markt am Eck', { lat: 0.0005, lon: 0.002 })
 
-function richteEin(dienst = vi.fn().mockResolvedValue([supermarktDaneben])) {
+function geladen(ausZwischenspeicher: boolean) {
+  return { orte: [supermarktDaneben], stand: STAND_9_NOVEMBER_2026, ausZwischenspeicher }
+}
+
+function richteEin(dienst = vi.fn().mockResolvedValue(geladen(false))) {
   const grundstueck = shallowRef<GrundstueckPolygon | null>(quadratAmAequator)
   const umgebung = useUmgebung(grundstueck, dienst)
   return { grundstueck, umgebung, dienst }
@@ -46,6 +50,15 @@ describe('useUmgebung', () => {
     expect(umgebung.statusText.value).toBe(
       '1 von 8 Kategorien im Umkreis von 1,5\u00a0km gefunden.',
     )
+  })
+
+  it('nennt das Datum, wenn das Ergebnis aus dem Zwischenspeicher kommt', async () => {
+    const { umgebung } = richteEin(vi.fn().mockResolvedValue(geladen(true)))
+
+    await umgebung.pruefen()
+
+    expect(umgebung.statusText.value).toContain('Gespeichertes Ergebnis vom 09.11.2026.')
+    expect(umgebung.auswertung.value?.ausZwischenspeicher).toBe(true)
   })
 
   it('zeigt eine verständliche Meldung, wenn der Dienst überlastet ist', async () => {

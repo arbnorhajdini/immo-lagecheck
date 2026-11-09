@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatiereFlaeche, formatiereLaenge } from '@/lib/format'
+import { formatiereDatum, formatiereFlaeche, formatiereLaenge } from '@/lib/format'
 
 const TRENNER = '\u00a0'
 
@@ -36,5 +36,11 @@ describe('formatiereLaenge', () => {
 
   it('zeigt 0 m für Punkte innerhalb des Grundstücks', () => {
     expect(formatiereLaenge(0)).toBe(`0${TRENNER}m`)
+  })
+})
+
+describe('formatiereDatum', () => {
+  it('schreibt Datumsangaben im deutschen Format', () => {
+    expect(formatiereDatum(Date.UTC(2026, 10, 9, 12))).toBe('09.11.2026')
   })
 })
