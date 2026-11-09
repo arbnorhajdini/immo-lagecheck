@@ -2,10 +2,13 @@
 import { ref } from 'vue'
 import AdressSuche from '@/components/AdressSuche.vue'
 import AppHeader from '@/components/AppHeader.vue'
+import GrundstueckAngaben from '@/components/GrundstueckAngaben.vue'
 import KarteGrundstueck from '@/components/KarteGrundstueck.vue'
+import { useGrundstueck } from '@/composables/useGrundstueck'
 import type { AdressTreffer } from '@/types'
 
 const adresse = ref<AdressTreffer | null>(null)
+const { grundstueck, masse, entferneGrundstueck } = useGrundstueck()
 </script>
 
 <template>
@@ -17,9 +20,10 @@ const adresse = ref<AdressTreffer | null>(null)
     >
       <div class="flex flex-col gap-4">
         <AdressSuche v-model:adresse="adresse" />
+        <GrundstueckAngaben :masse="masse" @entfernen="entferneGrundstueck" />
       </div>
 
-      <KarteGrundstueck :adresse="adresse" />
+      <KarteGrundstueck v-model:grundstueck="grundstueck" :adresse="adresse" />
     </main>
   </div>
 </template>

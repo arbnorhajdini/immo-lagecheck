@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import L from 'leaflet'
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
+import type { GrundstueckPolygon } from '@/lib/geometrie'
+import { aktiviereGrundstueckZeichnen, type GrundstueckZeichnen } from '@/lib/grundstueckZeichnen'
 import type { AdressTreffer } from '@/types'
 
 const props = defineProps<{ adresse: AdressTreffer | null }>()
+const grundstueck = defineModel<GrundstueckPolygon | null>('grundstueck', { default: null })
 
 const DEUTSCHLAND_MITTE: L.LatLngTuple = [51.1657, 10.4515]
 const UEBERSICHTS_ZOOM = 6
@@ -29,6 +32,7 @@ const kartenElement = useTemplateRef<HTMLDivElement>('karte')
 
 let karte: L.Map | null = null
 let adressMarker: L.Marker | null = null
+let grundstueckZeichnen: GrundstueckZeichnen | null = null
 
 function bewegungIstReduziert(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -85,18 +89,27 @@ function zeigeAdresse(adresse: AdressTreffer | null): void {
   zeigeAusschnitt(karte, adresse)
 }
 
+function entferneGezeichnetesGrundstueck(neuesGrundstueck: GrundstueckPolygon | null): void {
+  if (neuesGrundstueck === null) grundstueckZeichnen?.entferneGrundstueck()
+}
+
 onMounted(() => {
   if (!kartenElement.value) return
   karte = erstelleKarte(kartenElement.value)
+  grundstueckZeichnen = aktiviereGrundstueckZeichnen(karte, (gezeichnet) => {
+    grundstueck.value = gezeichnet
+  })
   zeigeAdresse(props.adresse)
 })
 
 watch(() => props.adresse, zeigeAdresse)
+watch(grundstueck, entferneGezeichnetesGrundstueck)
 
 onBeforeUnmount(() => {
   entferneAdressMarker()
   karte?.remove()
   karte = null
+  grundstueckZeichnen = null
 })
 </script>
 

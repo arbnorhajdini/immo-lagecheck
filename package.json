@@ -32,6 +32,8 @@
     ]
   },
   "dependencies": {
+    "@geoman-io/leaflet-geoman-free": "^2.20.6",
+    "@turf/turf": "^7.4.0",
     "leaflet": "^1.9.4",
     "vue": "^3.5.45"
   },

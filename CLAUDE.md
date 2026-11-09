@@ -143,6 +143,7 @@ src/
     AppHeader.vue          // Titel + Theme-Umschalter
     AdressSuche.vue
     KarteGrundstueck.vue
+    GrundstueckAngaben.vue // Anleitung, Fläche, Umfang, „Grundstück entfernen“
     UmgebungListe.vue
     LageSteckbrief.vue
   composables/
@@ -153,6 +154,7 @@ src/
   lib/
     nominatim.ts           // Such-URL, Antwort parsen, 1 Anfrage/Sekunde
     geometrie.ts           // reine Turf-Funktionen (testbar)
+    grundstueckZeichnen.ts // Geoman: Werkzeugleiste, nur ein Grundstück, keine Selbstüberschneidung
     format.ts              // m², ha, m/km, deutsche Zahlenformate
     overpass.ts            // Query bauen, Antwort parsen
   types.ts
@@ -160,6 +162,7 @@ tests/
   nominatim.test.ts
   useAdressSuche.test.ts
   useTheme.test.ts
+  useGrundstueck.test.ts
   geometrie.test.ts
   format.test.ts
 scripts/

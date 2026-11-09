@@ -22,6 +22,8 @@
   --color-plot-fill: #0b6a62;
   --color-plot-stroke: #08564f;
   --map-tile-filter: none;
+  --map-icon-filter: none;
+  --plot-fill-opacity: 0.2;
 
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
@@ -55,6 +57,8 @@
   --color-plot-fill: #4fd1c1;
   --color-plot-stroke: #7ddfd3;
   --map-tile-filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6);
+  --map-icon-filter: invert(1);
+  --plot-fill-opacity: 0.25;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 0.5);

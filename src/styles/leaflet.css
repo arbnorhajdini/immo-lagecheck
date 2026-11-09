@@ -68,3 +68,39 @@
 .adress-marker__punkt {
   fill: var(--color-primary-contrast);
 }
+
+.leaflet-pm-toolbar .control-icon {
+  filter: var(--map-icon-filter);
+}
+
+.leaflet-pm-toolbar .active > .leaflet-buttons-control-button {
+  background-color: var(--color-surface-muted);
+}
+
+.button-container .leaflet-pm-actions-container .leaflet-pm-action {
+  background-color: var(--color-text);
+  color: var(--color-surface);
+  border-right-color: var(--color-text-muted);
+}
+
+.button-container .leaflet-pm-actions-container .leaflet-pm-action:hover,
+.button-container .leaflet-pm-actions-container .leaflet-pm-action:focus {
+  background-color: var(--color-text-muted);
+}
+
+.grundstueck-flaeche {
+  stroke: var(--color-plot-stroke);
+  stroke-width: 3;
+  fill: var(--color-plot-fill);
+  fill-opacity: var(--plot-fill-opacity);
+}
+
+.grundstueck-zeichenlinie {
+  stroke: var(--color-plot-stroke);
+  stroke-dasharray: 6 6;
+}
+
+.marker-icon {
+  border-color: var(--color-plot-stroke);
+  background-color: var(--color-surface);
+}
