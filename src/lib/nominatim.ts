@@ -1,7 +1,9 @@
 import { alsZahl, istObjekt } from '@/lib/typpruefung'
-import type { AdressTreffer, Begrenzung } from '@/types'
+import type { AdressTreffer, Begrenzung, Koordinate } from '@/types'
 
 export const NOMINATIM_SUCH_URL = 'https://nominatim.openstreetmap.org/search'
+export const NOMINATIM_RUECKWAERTS_URL = 'https://nominatim.openstreetmap.org/reverse'
+const ZOOMSTUFE_GEBAEUDE = 18
 export const MAX_ANGEZEIGTE_TREFFER = 5
 export const ABGEFRAGTE_TREFFER = MAX_ANGEZEIGTE_TREFFER * 2
 export const MIN_ABSTAND_ZWISCHEN_ANFRAGEN_MS = 1000
@@ -18,6 +20,18 @@ export function baueSuchUrl(suchbegriff: string): string {
     'accept-language': 'de',
   })
   return `${NOMINATIM_SUCH_URL}?${parameter.toString()}`
+}
+
+export function baueRueckwaertsUrl({ lat, lon }: Koordinate): string {
+  const parameter = new URLSearchParams({
+    lat: String(lat),
+    lon: String(lon),
+    format: 'jsonv2',
+    addressdetails: '1',
+    zoom: String(ZOOMSTUFE_GEBAEUDE),
+    'accept-language': 'de',
+  })
+  return `${NOMINATIM_RUECKWAERTS_URL}?${parameter.toString()}`
 }
 
 function parseBegrenzung(nominatimBoundingbox: unknown): Begrenzung | null {
@@ -81,6 +95,10 @@ export function parseSuchantwort(antwort: unknown): AdressTreffer[] {
   return ohneDoppelteAdressen(gueltigeTreffer).slice(0, MAX_ANGEZEIGTE_TREFFER)
 }
 
+export function parseRueckwaertsAntwort(antwort: unknown): AdressTreffer | null {
+  return parseTreffer(antwort)
+}
+
 export function erstelleRateLimiter(
   minAbstandMs: number,
   aktuelleZeit: () => number = () => Date.now(),
@@ -122,4 +140,19 @@ export async function sucheAdresse(
   })
   if (!antwort.ok) throw new NominatimFehler(antwort.status)
   return parseSuchantwort(await antwort.json())
+}
+
+export async function sucheAdresseZuKoordinate(
+  koordinate: Koordinate,
+  signal?: AbortSignal,
+): Promise<AdressTreffer | null> {
+  await warteAufFreienNominatimZeitpunkt()
+  signal?.throwIfAborted()
+
+  const antwort = await fetch(baueRueckwaertsUrl(koordinate), {
+    signal,
+    headers: { Accept: 'application/json' },
+  })
+  if (!antwort.ok) throw new NominatimFehler(antwort.status)
+  return parseRueckwaertsAntwort(await antwort.json())
 }

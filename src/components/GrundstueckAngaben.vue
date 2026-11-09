@@ -3,7 +3,11 @@ import { computed } from 'vue'
 import { formatiereFlaeche, formatiereLaenge } from '@/lib/format'
 import type { GrundstueckMasse } from '@/lib/geometrie'
 
-const props = defineProps<{ masse: GrundstueckMasse | null; nummer: number | null }>()
+const props = defineProps<{
+  masse: GrundstueckMasse | null
+  nummer: number | null
+  adresshinweis: string
+}>()
 const emit = defineEmits<{ entfernen: [] }>()
 
 const flaeche = computed(() => (props.masse ? formatiereFlaeche(props.masse.flaecheQm) : ''))
@@ -30,6 +34,13 @@ const umfang = computed(() => (props.masse ? formatiereLaenge(props.masse.umfang
       <p v-else class="text-sm text-muted">
         In der Karte „Grundstück als Vieleck zeichnen“ oder „als Rechteck“ wählen und die Ecken
         anklicken. Zum Abschließen den ersten Eckpunkt erneut anklicken.
+      </p>
+
+      <p
+        v-if="masse && adresshinweis"
+        class="mt-3 rounded-md border border-border bg-surface-muted p-3 text-sm text-fg"
+      >
+        {{ adresshinweis }}
       </p>
     </div>
 

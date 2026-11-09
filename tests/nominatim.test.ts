@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  baueRueckwaertsUrl,
   baueSuchUrl,
   erstelleRateLimiter,
   formatiereKurzName,
+  parseRueckwaertsAntwort,
   parseSuchantwort,
 } from '@/lib/nominatim'
 
@@ -136,5 +138,33 @@ describe('erstelleRateLimiter', () => {
     ])
 
     expect(gewarteteMillisekunden).toEqual([1000, 2000])
+  })
+})
+
+describe('Rückwärtssuche', () => {
+  it('fragt die Adresse zu einer Koordinate auf Gebäudeebene und auf Deutsch an', () => {
+    const url = new URL(baueRueckwaertsUrl({ lat: 52.4205, lon: 10.7865 }))
+
+    expect(url.origin + url.pathname).toBe('https://nominatim.openstreetmap.org/reverse')
+    expect(url.searchParams.get('lat')).toBe('52.4205')
+    expect(url.searchParams.get('lon')).toBe('10.7865')
+    expect(url.searchParams.get('zoom')).toBe('18')
+    expect(url.searchParams.get('accept-language')).toBe('de')
+  })
+
+  it('macht aus der Antwort einen Adresstreffer', () => {
+    const treffer = parseRueckwaertsAntwort({
+      place_id: 7,
+      lat: '52.4205',
+      lon: '10.7865',
+      display_name: 'Porschestraße, Köhlerberg, Wolfsburg, 38440, Deutschland',
+      address: { road: 'Porschestraße', postcode: '38440', city: 'Wolfsburg' },
+    })
+
+    expect(treffer?.kurzName).toBe('Porschestraße, 38440 Wolfsburg')
+  })
+
+  it('liefert null, wenn Nominatim an der Stelle nichts findet', () => {
+    expect(parseRueckwaertsAntwort({ error: 'Unable to geocode' })).toBeNull()
   })
 })

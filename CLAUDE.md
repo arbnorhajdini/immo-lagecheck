@@ -46,6 +46,10 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
 - Kartenattribution „© OpenStreetMap-Mitwirkende“ muss sichtbar sein.
 - Nominatim: höchstens 1 Anfrage pro Sekunde, nur auf Knopfdruck/Enter suchen (kein Live-Suchen
   bei jedem Tastendruck), `accept-language=de`, Ergebnisse auf Deutschland begrenzen (`countrycodes=de`).
+  Rückwärtssuche (`/reverse`, gleiche Bremse) nur, wenn sich das Grundstück ändert und die gesuchte
+  Adresse mehr als 50 m daneben liegt oder keine gesucht wurde (`src/lib/grundstuecksadresse.ts`):
+  Steckbrief und PDF nennen dann die Adresse am Grundstück, ohne Treffer die Koordinaten –
+  nie eine Adresse, die nicht zum Grundstück passt.
 - Overpass: **eine** gebündelte Abfrage pro „Umgebung prüfen“, Timeout setzen, Fehler freundlich anzeigen.
   **Der Browser fragt Overpass nie direkt**, sondern die eigene Vercel-Funktion
   `api/umgebung.ts` (`GET /api/umgebung?lat=…&lon=…`). Grund: overpass-api.de sperrt Anfragen mit
@@ -196,8 +200,10 @@ src/
     useUmgebung.ts         // Overpass + nächstgelegene Orte
     useZwischenablage.ts   // Clipboard API, Bestätigung, Hinweis bei Fehler
     useExposeExport.ts     // Status des PDF-Exports
+    useGrundstuecksadresse.ts // passt die gesuchte Adresse zum Grundstück? sonst Rückwärtssuche
   lib/
-    nominatim.ts           // Such-URL, Antwort parsen, 1 Anfrage/Sekunde
+    nominatim.ts           // Suche und Rückwärtssuche, Antwort parsen, 1 Anfrage/Sekunde
+    grundstuecksadresse.ts // Abstand Adresse ↔ Grundstück, wirksame Adresse, Hinweistext
     objektart.ts           // Objektarten, Schrittnummern, Bezugsobjekt je Objektart
     geometrie.ts           // reine Turf-Funktionen (testbar)
     grundstueckZeichnen.ts // Geoman: Werkzeugleiste, nur ein Grundstück, keine Selbstüberschneidung
@@ -223,6 +229,8 @@ src/
   types.ts
 tests/
   nominatim.test.ts
+  grundstuecksadresse.test.ts
+  useGrundstuecksadresse.test.ts
   objektart.test.ts
   useAdressSuche.test.ts
   useTheme.test.ts

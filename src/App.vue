@@ -8,6 +8,7 @@ import LageSteckbrief from '@/components/LageSteckbrief.vue'
 import ObjektartWahl from '@/components/ObjektartWahl.vue'
 import UmgebungListe from '@/components/UmgebungListe.vue'
 import { useGrundstueck } from '@/composables/useGrundstueck'
+import { useGrundstuecksadresse } from '@/composables/useGrundstuecksadresse'
 import { useUmgebung } from '@/composables/useUmgebung'
 import {
   bezugsobjektFuer,
@@ -27,6 +28,7 @@ const nummern = computed(() => schrittnummern(objektart.value))
 const mitGrundstueck = computed(() => objektart.value.mitGrundstueck)
 
 const { auswertung, status, statusText, kannPruefen, pruefen } = useUmgebung(bezug)
+const { wirksameAdresse, hinweis: adresshinweis } = useGrundstuecksadresse(adresse, grundstueck)
 
 watch(mitGrundstueck, (grundstueckErlaubt) => {
   if (!grundstueckErlaubt) entferneGrundstueck()
@@ -47,6 +49,7 @@ watch(mitGrundstueck, (grundstueckErlaubt) => {
           v-if="mitGrundstueck"
           :masse="masse"
           :nummer="nummern.grundstueck"
+          :adresshinweis="adresshinweis"
           @entfernen="entferneGrundstueck"
         />
         <UmgebungListe
@@ -61,7 +64,7 @@ watch(mitGrundstueck, (grundstueckErlaubt) => {
         />
         <LageSteckbrief
           :objektart="objektart"
-          :adresse="adresse"
+          :adresse="wirksameAdresse"
           :bezug="bezug"
           :masse="mitGrundstueck ? masse : null"
           :auswertung="auswertung"
