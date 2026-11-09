@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useExposeExport } from '@/composables/useExposeExport'
 import { useZwischenablage } from '@/composables/useZwischenablage'
 import type { Bezugsobjekt, GrundstueckMasse } from '@/lib/geometrie'
@@ -20,9 +20,23 @@ const { status: kopierStatus, meldung: kopierMeldung, kopiere } = useZwischenabl
 const {
   status: exportStatus,
   laedt: pdfWirdErstellt,
+  istVeraltet,
   meldung: exportMeldung,
   speichereAlsPdf,
+  bereiteVor,
 } = useExposeExport()
+
+watch(
+  () => props.bezug !== null,
+  (steckbriefMoeglich) => {
+    if (steckbriefMoeglich) void bereiteVor()
+  },
+  { immediate: true },
+)
+
+function ladeSeiteNeu(): void {
+  window.location.reload()
+}
 
 const steckbrief = computed(() =>
   props.bezug
@@ -104,13 +118,21 @@ function speichereExpose(): void {
         aria-live="polite"
         class="min-h-5 text-sm break-words"
         :class="{
-          'text-danger': exportStatus === 'fehler',
+          'text-danger': exportStatus === 'fehler' || istVeraltet,
           'text-success': exportStatus === 'gespeichert',
           'text-muted': exportStatus === 'laedt',
         }"
       >
         {{ exportMeldung }}
       </p>
+      <button
+        v-if="istVeraltet"
+        type="button"
+        class="mt-1 cursor-pointer rounded-md border border-border-control px-3 py-1.5 text-sm text-fg transition-colors hover:bg-surface-muted"
+        @click="ladeSeiteNeu"
+      >
+        Seite neu laden
+      </button>
     </template>
   </section>
 </template>

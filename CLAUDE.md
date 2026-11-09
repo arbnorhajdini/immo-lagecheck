@@ -116,6 +116,10 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
    - Karten werden aus OSM-Kacheln (CORS erlaubt) in doppelter Auflösung selbst gezeichnet –
      kein Screenshot der Live-Karte, daher immer helle Druckfarben, auch im Dark Mode.
    - Helvetica im PDF kennt nur WinAnsi: fremde Zeichen über `alsPdfText()` ersetzen.
+   - jsPDF nur über `ladeJsPdf()` (`src/lib/jsPdfLaden.ts`) laden; es wird vorgeladen, sobald ein
+     Steckbrief möglich ist. Grund: Nach einem neuen Deployment fehlt in offenen Tabs die alte
+     Chunk-Datei (404). Tritt das trotzdem auf, meldet die App „Seite neu laden“ statt einer
+     falschen Netzwerk-Meldung (`istModulLadefehler`).
 
 ## Nicht im MVP (später)
 
@@ -223,6 +227,7 @@ src/
     markerVerteilung.ts    // überlappende Marker versetzen
     pdfFarben.ts           // --pdf-* Tokens lesen
     pdfText.ts             // Text auf WinAnsi-Zeichensatz bringen
+    jsPdfLaden.ts          // jsPDF einmal laden/vorladen, Modul-Ladefehler erkennen
     umgebungsZwischenspeicher.ts // Overpass-Orte 7 Tage im localStorage
     speicher.ts            // mitLocalStorage() – sicherer Zugriff mit try/catch
     typpruefung.ts         // istObjekt, alsZahl für fremde JSON-Antworten
@@ -247,6 +252,7 @@ tests/
   kachelMathe.test.ts
   markerVerteilung.test.ts
   pdfText.test.ts
+  jsPdfLaden.test.ts
   umgebungsZwischenspeicher.test.ts
   geometrie.test.ts
   format.test.ts

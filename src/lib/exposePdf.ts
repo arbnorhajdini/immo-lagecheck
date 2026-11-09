@@ -1,5 +1,6 @@
 import type { jsPDF } from 'jspdf'
 import type { ExposeInhalt, Kennzahl, UmgebungsZeile } from '@/lib/exposeInhalt'
+import { ladeJsPdf } from '@/lib/jsPdfLaden'
 import { BILD_BREITE_PX, BILD_HOEHE_PX, type Kartenbild } from '@/lib/kartenbild'
 import type { PdfFarben } from '@/lib/pdfFarben'
 import { alsPdfText } from '@/lib/pdfText'
@@ -347,7 +348,7 @@ export async function baueExposePdf(
   karten: ExposeKarten,
   farben: PdfFarben,
 ): Promise<jsPDF> {
-  const { jsPDF } = await import('jspdf')
+  const { jsPDF } = await ladeJsPdf()
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true })
   const zeichner: Zeichner = { pdf, farben }
   const mitUmgebungsseite = inhalt.umgebung !== null && karten.umgebung !== null
