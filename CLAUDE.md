@@ -47,10 +47,18 @@ Ergebnis ist ein „Lage-Steckbrief“, den der Makler ins Exposé kopieren kann
 - Nominatim: höchstens 1 Anfrage pro Sekunde, nur auf Knopfdruck/Enter suchen (kein Live-Suchen
   bei jedem Tastendruck), `accept-language=de`, Ergebnisse auf Deutschland begrenzen (`countrycodes=de`).
 - Overpass: **eine** gebündelte Abfrage pro „Umgebung prüfen“, Timeout setzen, Fehler freundlich anzeigen.
-  Die öffentlichen Overpass-Server sind oft überlastet (sofort 502 oder Antwort erst nach ~50 s).
-  Deshalb: Gesamtzeitlimit 60 s; nur bei Überlast (429/502/503/504, Laufzeitfehler, Netzwerkfehler)
-  bis zu 3 Versuche mit Pause (0 / 2 / 5 s), abwechselnd `overpass-api.de` und
-  `overpass.private.coffee` (siehe `src/lib/overpass.ts`).
+  **Der Browser fragt Overpass nie direkt**, sondern die eigene Vercel-Funktion
+  `api/umgebung.ts` (`GET /api/umgebung?lat=…&lon=…`). Grund: overpass-api.de sperrt Anfragen mit
+  Referer `*.vercel.app` (HTTP 406, ohne CORS-Header); mit eigener App-Kennung als User-Agent
+  (`APP_KENNUNG`) nimmt der Server sie an – so verlangt es auch die Overpass-Nutzungsregel.
+  Den Referer **nicht** fälschen oder weglassen, um Sperren zu umgehen.
+  - Die Funktion nimmt nur `lat`/`lon` in Deutschland an und baut die Abfrage selbst
+    (`src/lib/overpassAbfrage.ts`, nur relative Importe) – kein offener Proxy.
+  - Vollständige Antworten bleiben 7 Tage im Vercel-CDN (`s-maxage`), Fehler/Überlast nie.
+  - Lokal führt `vite/vercelFunktionenLokal.ts` dieselbe Funktion unter `npm run dev` und
+    `npm run preview` aus.
+  - Overpass ist oft überlastet (sofort 502 oder Antwort nach ~40 s): Gesamtzeitlimit 60 s im
+    Browser, bei 429/502/503/504 bis zu 3 Versuche mit Pause (0 / 2 / 5 s).
 - Overpass-Ergebnisse (rohe Orte) 7 Tage im `localStorage` zwischenspeichern, Schlüssel =
   Grundstücks-Mittelpunkt auf 3 Nachkommastellen (`src/lib/umgebungsZwischenspeicher.ts`).
   Entfernungen werden immer neu aus dem aktuellen Grundstück berechnet; Status und Steckbrief
@@ -184,7 +192,8 @@ src/
     geometrie.ts           // reine Turf-Funktionen (testbar)
     grundstueckZeichnen.ts // Geoman: Werkzeugleiste, nur ein Grundstück, keine Selbstüberschneidung
     format.ts              // m², ha, m/km, deutsche Zahlenformate
-    overpass.ts            // Query bauen, Antwort parsen, Ausweichserver
+    overpass.ts            // /api/umgebung abfragen (mit neuen Versuchen), Antwort parsen
+    overpassAbfrage.ts     // Abfrage bauen, Mittelpunkt runden, Deutschland-Prüfung (auch Server)
     umgebungKategorien.ts  // die 8 Kategorien – Overpass-Filter und Zuordnung aus einer Quelle
     umgebung.ts            // nächstgelegener Ort je Kategorie
     umgebungAufKarte.ts    // Marker, Hauptstraße, 1,5-km-Umkreis
@@ -209,6 +218,8 @@ tests/
   useGrundstueck.test.ts
   useUmgebung.test.ts
   overpass.test.ts
+  overpassAbfrage.test.ts
+  apiUmgebung.test.ts
   umgebung.test.ts
   steckbrief.test.ts
   useZwischenablage.test.ts
@@ -223,6 +234,11 @@ tests/
   testdaten.ts             // gemeinsame Testdaten (Quadrat am Äquator, Orte, Straßen)
 scripts/
   check-colors.mjs         // für npm run lint:colors
+api/
+  umgebung.ts              // Vercel-Funktion: Overpass-Abfrage mit App-Kennung, CDN-Cache
+vite/
+  vercelFunktionenLokal.ts // führt api/*.ts lokal im Dev-/Preview-Server aus
+vercel.json                // maxDuration der Funktion
 eslint-regeln/
   keine-kommentare.js      // ESLint-Regel app/keine-kommentare
 .env                       // VITE_THEME_STORAGE_KEY (keine Secrets!)

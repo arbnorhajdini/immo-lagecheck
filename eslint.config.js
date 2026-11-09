@@ -12,7 +12,7 @@ export default defineConfigWithVueTs(
     files: ['**/*.{ts,mts,tsx,vue,js,mjs}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '.vercel/**']),
 
   pluginVue.configs['flat/recommended'],
   vueTsConfigs.recommended,
@@ -28,7 +28,13 @@ export default defineConfigWithVueTs(
 
   {
     name: 'app/node-scripts',
-    files: ['scripts/**/*.mjs', 'eslint-regeln/**/*.js', '*.config.{js,ts}'],
+    files: [
+      'scripts/**/*.mjs',
+      'eslint-regeln/**/*.js',
+      '*.config.{js,ts}',
+      'vite/**/*.ts',
+      'api/**/*.ts',
+    ],
     languageOptions: { globals: globals.node },
   },
 

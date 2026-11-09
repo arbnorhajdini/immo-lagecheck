@@ -1,19 +1,9 @@
+import { enthaeltLaufzeitfehler, rundeMittelpunkt } from '@/lib/overpassAbfrage'
 import { alsZahl, istObjekt } from '@/lib/typpruefung'
-import {
-  alsOverpassFilter,
-  findeKategorie,
-  type OsmTags,
-  UMGEBUNGS_KATEGORIEN,
-  UMKREIS_M,
-  type UmgebungsKategorie,
-} from '@/lib/umgebungKategorien'
+import { findeKategorie, type OsmTags } from '@/lib/umgebungKategorien'
 import type { Koordinate, Ortsgeometrie, UmgebungsOrt } from '@/types'
 
-export const OVERPASS_SERVER = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.private.coffee/api/interpreter',
-]
-export const OVERPASS_ZEITLIMIT_S = 25
+export const UMGEBUNG_ENDPUNKT = '/api/umgebung'
 export const GESAMT_ZEITLIMIT_MS = 60_000
 export const WARTEZEITEN_VOR_VERSUCH_MS = [0, 2_000, 5_000]
 export const STATUS_ZEITUEBERSCHREITUNG = 504
@@ -28,26 +18,6 @@ export class OverpassFehler extends Error {
     this.name = 'OverpassFehler'
     this.status = status
   }
-}
-
-function kategorienMitGeometrie(art: Ortsgeometrie['art']): UmgebungsKategorie[] {
-  return UMGEBUNGS_KATEGORIEN.filter((kategorie) => kategorie.geometrieArt === art)
-}
-
-export function baueOverpassAbfrage(mittelpunkt: Koordinate, umkreisM = UMKREIS_M): string {
-  const umkreis = `(around:${umkreisM},${mittelpunkt.lat},${mittelpunkt.lon})`
-  const ortsabfragen = kategorienMitGeometrie('punkt')
-    .map(({ bedingung }) => `nwr${alsOverpassFilter(bedingung)}${umkreis};`)
-    .join('')
-  const linienabfragen = kategorienMitGeometrie('linie')
-    .map(({ bedingung }) => `way${alsOverpassFilter(bedingung)}${umkreis};`)
-    .join('')
-
-  return [
-    `[out:json][timeout:${OVERPASS_ZEITLIMIT_S}];`,
-    `(${ortsabfragen});out tags center;`,
-    `(${linienabfragen});out tags geom;`,
-  ].join('')
 }
 
 function parseKoordinate(wert: unknown): Koordinate | null {
@@ -102,14 +72,6 @@ export function parseOverpassAntwort(antwort: unknown): UmgebungsOrt[] {
   return antwort.elements.flatMap(parseElement)
 }
 
-function enthaeltLaufzeitfehler(antwort: unknown): boolean {
-  return (
-    istObjekt(antwort) &&
-    typeof antwort.remark === 'string' &&
-    antwort.remark.includes('runtime error')
-  )
-}
-
 export function istZeitueberschreitung(fehler: unknown): boolean {
   return fehler instanceof DOMException && fehler.name === 'TimeoutError'
 }
@@ -128,20 +90,20 @@ function warteMs(millisekunden: number): Promise<void> {
   return new Promise((weiter) => setTimeout(weiter, millisekunden))
 }
 
-async function frageServer(serverUrl: string, abfrage: string, signal: AbortSignal) {
-  const antwort = await fetch(serverUrl, {
-    method: 'POST',
-    body: new URLSearchParams({ data: abfrage }),
-    signal,
-  })
+export function umgebungsUrl(mittelpunkt: Koordinate): string {
+  const { lat, lon } = rundeMittelpunkt(mittelpunkt)
+  return `${UMGEBUNG_ENDPUNKT}?${new URLSearchParams({ lat: String(lat), lon: String(lon) })}`
+}
+
+async function frageEndpunkt(url: string, signal: AbortSignal): Promise<unknown> {
+  const antwort = await fetch(url, { signal })
   if (!antwort.ok) throw new OverpassFehler(antwort.status)
-  const daten: unknown = await antwort.json()
-  if (enthaeltLaufzeitfehler(daten)) throw new OverpassFehler(STATUS_ZEITUEBERSCHREITUNG)
-  return daten
+  const text = await antwort.text()
+  if (enthaeltLaufzeitfehler(text)) throw new OverpassFehler(STATUS_ZEITUEBERSCHREITUNG)
+  return JSON.parse(text)
 }
 
 export interface LadeOptionen {
-  server?: string[]
   wartezeitenVorVersuchMs?: number[]
   warte?: (millisekunden: number) => Promise<void>
 }
@@ -149,22 +111,17 @@ export interface LadeOptionen {
 export async function ladeUmgebung(
   mittelpunkt: Koordinate,
   signal?: AbortSignal,
-  {
-    server = OVERPASS_SERVER,
-    wartezeitenVorVersuchMs = WARTEZEITEN_VOR_VERSUCH_MS,
-    warte = warteMs,
-  }: LadeOptionen = {},
+  { wartezeitenVorVersuchMs = WARTEZEITEN_VOR_VERSUCH_MS, warte = warteMs }: LadeOptionen = {},
 ): Promise<UmgebungsOrt[]> {
-  const abfrage = baueOverpassAbfrage(mittelpunkt)
+  const url = umgebungsUrl(mittelpunkt)
   const begrenztesSignal = mitGesamtZeitlimit(signal)
   let letzterFehler: unknown = new OverpassFehler(STATUS_ZEITUEBERSCHREITUNG)
 
-  for (const [versuch, wartezeit] of wartezeitenVorVersuchMs.entries()) {
+  for (const wartezeit of wartezeitenVorVersuchMs) {
     await warte(wartezeit)
     begrenztesSignal.throwIfAborted()
-    const serverUrl = server[versuch % server.length]!
     try {
-      return parseOverpassAntwort(await frageServer(serverUrl, abfrage, begrenztesSignal))
+      return parseOverpassAntwort(await frageEndpunkt(url, begrenztesSignal))
     } catch (fehler) {
       if (begrenztesSignal.aborted || !lohntNeuerVersuch(fehler)) throw fehler
       letzterFehler = fehler

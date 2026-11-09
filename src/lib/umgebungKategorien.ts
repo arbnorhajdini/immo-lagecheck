@@ -1,4 +1,4 @@
-import type { KategorieSchluessel, Ortsgeometrie } from '@/types'
+import type { KategorieSchluessel, Ortsgeometrie } from '../types.js'
 
 export const UMKREIS_M = 1500
 
