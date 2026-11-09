@@ -4,6 +4,7 @@ import AdressSuche from '@/components/AdressSuche.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import GrundstueckAngaben from '@/components/GrundstueckAngaben.vue'
 import KarteGrundstueck from '@/components/KarteGrundstueck.vue'
+import LageSteckbrief from '@/components/LageSteckbrief.vue'
 import UmgebungListe from '@/components/UmgebungListe.vue'
 import { useGrundstueck } from '@/composables/useGrundstueck'
 import { useUmgebung } from '@/composables/useUmgebung'
@@ -33,6 +34,7 @@ const hatGrundstueck = computed(() => grundstueck.value !== null)
           :hat-grundstueck="hatGrundstueck"
           @pruefen="pruefen"
         />
+        <LageSteckbrief :adresse="adresse" :masse="masse" :auswertung="auswertung" />
       </div>
 
       <KarteGrundstueck

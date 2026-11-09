@@ -153,12 +153,13 @@ src/
     KarteGrundstueck.vue
     GrundstueckAngaben.vue // Anleitung, Fläche, Umfang, „Grundstück entfernen“
     UmgebungListe.vue      // Button „Umgebung prüfen“, Ergebnis je Kategorie
-    LageSteckbrief.vue
+    LageSteckbrief.vue     // Textvorschau, „Kopieren“, Bestätigung
   composables/
     useTheme.ts            // Hell / Dunkel / System
     useAdressSuche.ts      // Nominatim
     useGrundstueck.ts      // Polygon, Fläche, Umfang
     useUmgebung.ts         // Overpass + nächstgelegene Orte
+    useZwischenablage.ts   // Clipboard API, Bestätigung, Hinweis bei Fehler
   lib/
     nominatim.ts           // Such-URL, Antwort parsen, 1 Anfrage/Sekunde
     geometrie.ts           // reine Turf-Funktionen (testbar)
@@ -169,6 +170,7 @@ src/
     umgebung.ts            // nächstgelegener Ort je Kategorie
     umgebungAufKarte.ts    // Marker, Hauptstraße, 1,5-km-Umkreis
     kartenText.ts          // alsSichererText() für Tooltips
+    steckbrief.ts          // Text des Lage-Steckbriefs (reine Funktion)
     typpruefung.ts         // istObjekt, alsZahl für fremde JSON-Antworten
   types.ts
 tests/
@@ -179,6 +181,8 @@ tests/
   useUmgebung.test.ts
   overpass.test.ts
   umgebung.test.ts
+  steckbrief.test.ts
+  useZwischenablage.test.ts
   geometrie.test.ts
   format.test.ts
   testdaten.ts             // gemeinsame Testdaten (Quadrat am Äquator, Orte, Straßen)
